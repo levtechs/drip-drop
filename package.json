@@ -5,10 +5,13 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:ISOLATED": "NEXT_BUILD_CACHE_DIR=.next-isolated-cache next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "clean:isolated": "rm -rf .next-isolated-cache"
   },
   "dependencies": {
+    "firebase": "^12.7.0",
     "next": "16.1.1",
     "react": "19.2.3",
     "react-dom": "19.2.3"
