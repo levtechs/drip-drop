@@ -1,0 +1,59 @@
+import { NextRequest } from "next/server";
+import admin from "firebase-admin";
+import { DecodedIdToken } from "firebase-admin/auth";
+
+let adminAuth: admin.auth.Auth | null = null;
+
+function getAdminAuth(): admin.auth.Auth {
+  if (adminAuth) return adminAuth;
+  
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  const privateKey = process.env.FIREBASE_PRIVATE_KEY;
+  
+  if (!clientEmail || !privateKey) {
+    throw new Error(
+      "Firebase Admin credentials missing. Add FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY to .env.local. " +
+      "Get these from Firebase Console > Project Settings > Service Accounts > Generate new private key"
+    );
+  }
+  
+  if (!admin.apps.length) {
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+        clientEmail,
+        privateKey: privateKey.replace(/\\n/g, "\n"),
+      }),
+    });
+  }
+  adminAuth = admin.auth();
+  return adminAuth;
+}
+
+export async function verifyAuthToken(request: NextRequest): Promise<DecodedIdToken> {
+  const authHeader = request.headers.get("Authorization");
+  
+  if (!authHeader) {
+    throw new Error("No authorization header provided");
+  }
+  
+  const [bearer, token] = authHeader.split(" ");
+  
+  if (bearer !== "Bearer" || !token) {
+    throw new Error("Invalid authorization header format. Expected: Bearer <token>");
+  }
+  
+  const firebaseAuth = getAdminAuth();
+  
+  try {
+    const decodedToken = await firebaseAuth.verifyIdToken(token);
+    return decodedToken;
+  } catch (error) {
+    console.error("Token verification failed:", error);
+    throw new Error("Invalid or expired token");
+  }
+}
+
+export function createAuthError(message: string = "Unauthorized") {
+  return new Error(message);
+}
