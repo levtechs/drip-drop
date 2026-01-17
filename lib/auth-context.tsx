@@ -16,7 +16,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     async function init() {
       try {
-        await initFirebase();
+        initFirebase();
         const auth = getFirebaseAuth();
         const { onAuthStateChanged } = await import("firebase/auth");
         const { doc, getDoc, setDoc, Timestamp } = await import("firebase/firestore");
