@@ -17,13 +17,10 @@ function isConfigured(): boolean {
 }
 
 let cachedApp: FirebaseApp | null = null;
-let cachedAuth: Auth | null = null;
-let cachedDb: Firestore | null = null;
-let cachedProvider: GoogleAuthProvider | null = null;
 
-function getOrInitApp(): FirebaseApp {
+export function getFirebaseApp(): FirebaseApp {
   if (!isConfigured()) {
-    return {} as FirebaseApp;
+    throw new Error("Firebase not configured");
   }
   if (!cachedApp) {
     cachedApp = getApps().length > 0 ? getApp() : initializeApp(getConfig());
@@ -31,33 +28,18 @@ function getOrInitApp(): FirebaseApp {
   return cachedApp;
 }
 
-function getOrInitAuth(): Auth {
-  if (!isConfigured()) {
-    return {} as Auth;
-  }
-  if (!cachedAuth) {
-    cachedAuth = getAuth(getOrInitApp());
-  }
-  return cachedAuth;
+export function getFirebaseAuth(): Auth {
+  return getAuth(getFirebaseApp());
 }
 
-function getOrInitDb(): Firestore {
-  if (!isConfigured()) {
-    return {} as Firestore;
-  }
-  if (!cachedDb) {
-    cachedDb = getFirestore(getOrInitApp());
-  }
-  return cachedDb;
+export function getFirebaseDb(): Firestore {
+  return getFirestore(getFirebaseApp());
 }
 
-function getOrInitProvider(): GoogleAuthProvider {
-  if (!cachedProvider) {
-    cachedProvider = new GoogleAuthProvider();
-  }
-  return cachedProvider;
+export function getGoogleProvider(): GoogleAuthProvider {
+  return new GoogleAuthProvider();
 }
 
-export const auth = getOrInitAuth();
-export const db = getOrInitDb();
-export const googleProvider = getOrInitProvider();
+export const auth = isConfigured() ? getAuth(getFirebaseApp()) : null;
+export const db = isConfigured() ? getFirestore(getFirebaseApp()) : null;
+export const googleProvider = new GoogleAuthProvider();

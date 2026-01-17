@@ -4,11 +4,12 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { onAuthStateChanged, User, signOut as firebaseSignOut, signInWithPopup } from "firebase/auth";
 import { doc, getDoc, setDoc, Timestamp } from "firebase/firestore";
 import { AuthContextType } from "./types";
-import { auth, googleProvider, db } from "./firebase";
+import { auth, db, googleProvider } from "./firebase";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 async function createUserDocument(user: User) {
+  if (!db) return;
   const userRef = doc(db, "users", user.uid);
   const userSnap = await getDoc(userRef);
 
@@ -38,6 +39,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!auth) {
+      setLoading(false);
+      return;
+    }
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
       if (user) {
@@ -50,6 +55,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signInWithGoogle = async () => {
+    if (!auth || !db) {
+      throw new Error("Firebase not configured");
+    }
     try {
       const result = await signInWithPopup(auth, googleProvider);
       await createUserDocument(result.user);
@@ -60,6 +68,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    if (!auth) {
+      throw new Error("Firebase not configured");
+    }
     try {
       await firebaseSignOut(auth);
     } catch (error) {
