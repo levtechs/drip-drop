@@ -1,10 +1,8 @@
 import { ListingData, CreateListingInput, UpdateListingInput } from "@/lib/types";
-import { authenticatedFetch, getApiBaseUrl } from "./helpers";
-
-const API_BASE_URL = getApiBaseUrl();
+import { authenticatedFetch } from "./helpers";
 
 export async function getListings(): Promise<ListingData[]> {
-  const response = await fetch(`${API_BASE_URL}/listings`, {
+  const response = await fetch("/api/listings", {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -19,7 +17,7 @@ export async function getListings(): Promise<ListingData[]> {
 }
 
 export async function getListing(id: string): Promise<ListingData> {
-  const response = await fetch(`${API_BASE_URL}/listings/${id}`, {
+  const response = await fetch(`/api/listings/${id}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -37,7 +35,7 @@ export async function getListing(id: string): Promise<ListingData> {
 }
 
 export async function getUserListings(userId: string): Promise<ListingData[]> {
-  const response = await fetch(`${API_BASE_URL}/listings/user/${userId}`, {
+  const response = await fetch(`/api/listings/user/${userId}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -52,7 +50,7 @@ export async function getUserListings(userId: string): Promise<ListingData[]> {
 }
 
 export async function createListing(input: CreateListingInput): Promise<ListingData> {
-  const response = await authenticatedFetch("/listings", {
+  const response = await authenticatedFetch("/api/listings", {
     method: "POST",
     body: JSON.stringify(input),
   });
@@ -69,7 +67,7 @@ export async function updateListing(
   id: string,
   input: UpdateListingInput
 ): Promise<ListingData> {
-  const response = await authenticatedFetch(`/listings/${id}`, {
+  const response = await authenticatedFetch(`/api/listings/${id}`, {
     method: "PUT",
     body: JSON.stringify(input),
   });
@@ -83,7 +81,7 @@ export async function updateListing(
 }
 
 export async function deleteListing(id: string): Promise<void> {
-  const response = await authenticatedFetch(`/listings/${id}`, {
+  const response = await authenticatedFetch(`/api/listings/${id}`, {
     method: "DELETE",
   });
 
