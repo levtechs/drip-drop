@@ -4,12 +4,11 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { onAuthStateChanged, User, signOut as firebaseSignOut, signInWithPopup } from "firebase/auth";
 import { doc, getDoc, setDoc, Timestamp } from "firebase/firestore";
 import { AuthContextType } from "./types";
-import { getFirebaseAuth, getGoogleProvider, getFirebaseDb } from "./firebase";
+import { auth, googleProvider, db } from "./firebase";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 async function createUserDocument(user: User) {
-  const db = getFirebaseDb();
   const userRef = doc(db, "users", user.uid);
   const userSnap = await getDoc(userRef);
 
@@ -39,7 +38,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const auth = getFirebaseAuth();
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setUser(user);
       if (user) {
@@ -53,8 +51,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signInWithGoogle = async () => {
     try {
-      const auth = getFirebaseAuth();
-      const googleProvider = getGoogleProvider();
       const result = await signInWithPopup(auth, googleProvider);
       await createUserDocument(result.user);
     } catch (error) {
@@ -65,7 +61,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     try {
-      const auth = getFirebaseAuth();
       await firebaseSignOut(auth);
     } catch (error) {
       console.error("Error signing out:", error);

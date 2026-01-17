@@ -1,23 +1,7 @@
 {
   "hosting": {
     "source": ".",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "frameworksBackend": {
-      "region": "us-east1",
-      "environmentVariables": {
-        "NEXT_PUBLIC_FIREBASE_API_KEY": "API_KEY_PLACEHOLDER",
-        "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN": "AUTH_DOMAIN_PLACEHOLDER",
-        "NEXT_PUBLIC_FIREBASE_PROJECT_ID": "PROJECT_ID_PLACEHOLDER",
-        "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET": "STORAGE_BUCKET_PLACEHOLDER",
-        "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "MESSAGING_SENDER_ID_PLACEHOLDER",
-        "NEXT_PUBLIC_FIREBASE_APP_ID": "APP_ID_PLACEHOLDER",
-        "FIREBASE_CLIENT_EMAIL": "CLIENT_EMAIL_PLACEHOLDER",
-        "FIREBASE_PRIVATE_KEY": "PRIVATE_KEY_PLACEHOLDER"
-      }
-    }
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "frameworksBackend": { "region": "us-east1" }
   }
 }

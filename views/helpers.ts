@@ -1,4 +1,4 @@
-import { getFirebaseAuth } from "@/lib/firebase";
+import { auth } from "@/lib/firebase";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/api";
 
@@ -6,8 +6,7 @@ export async function authenticatedFetch(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<Response> {
-  const firebaseAuth = getFirebaseAuth();
-  const currentUser = firebaseAuth.currentUser;
+  const currentUser = auth.currentUser;
   
   if (!currentUser) {
     throw new Error("User must be authenticated to perform this action");

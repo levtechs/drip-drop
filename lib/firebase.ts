@@ -2,52 +2,62 @@ import { initializeApp, getApp, getApps, FirebaseApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, Auth } from "firebase/auth";
 import { getFirestore, Firestore } from "firebase/firestore";
 
-const firebaseConfig = {
-  apiKey: typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "",
-  authDomain: typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "",
-  projectId: typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "",
-  storageBucket: typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "",
-  messagingSenderId: typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "",
-  appId: typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "",
-};
+const getConfig = () => ({
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "",
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "",
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "",
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "",
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "",
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "",
+});
 
-let app: FirebaseApp | null = null;
-let authInstance: Auth | null = null;
-let dbInstance: Firestore | null = null;
-let googleProviderInstance: GoogleAuthProvider | null = null;
-
-function getFirebaseApp(): FirebaseApp {
-  if (!app) {
-    if (getApps().length > 0) {
-      app = getApp();
-    } else {
-      app = initializeApp(firebaseConfig);
-    }
-  }
-  return app;
+function isConfigured(): boolean {
+  const config = getConfig();
+  return !!(config.apiKey && config.apiKey.startsWith("AIza") && config.projectId);
 }
 
-export function getFirebaseAuth(): Auth {
-  if (!authInstance) {
-    authInstance = getAuth(getFirebaseApp());
+let cachedApp: FirebaseApp | null = null;
+let cachedAuth: Auth | null = null;
+let cachedDb: Firestore | null = null;
+let cachedProvider: GoogleAuthProvider | null = null;
+
+function getOrInitApp(): FirebaseApp {
+  if (!isConfigured()) {
+    return {} as FirebaseApp;
   }
-  return authInstance;
+  if (!cachedApp) {
+    cachedApp = getApps().length > 0 ? getApp() : initializeApp(getConfig());
+  }
+  return cachedApp;
 }
 
-export function getFirebaseDb(): Firestore {
-  if (!dbInstance) {
-    dbInstance = getFirestore(getFirebaseApp());
+function getOrInitAuth(): Auth {
+  if (!isConfigured()) {
+    return {} as Auth;
   }
-  return dbInstance;
+  if (!cachedAuth) {
+    cachedAuth = getAuth(getOrInitApp());
+  }
+  return cachedAuth;
 }
 
-export function getGoogleProvider(): GoogleAuthProvider {
-  if (!googleProviderInstance) {
-    googleProviderInstance = new GoogleAuthProvider();
+function getOrInitDb(): Firestore {
+  if (!isConfigured()) {
+    return {} as Firestore;
   }
-  return googleProviderInstance;
+  if (!cachedDb) {
+    cachedDb = getFirestore(getOrInitApp());
+  }
+  return cachedDb;
 }
 
-export const auth = getFirebaseAuth();
-export const db = getFirebaseDb();
-export const googleProvider = getGoogleProvider();
+function getOrInitProvider(): GoogleAuthProvider {
+  if (!cachedProvider) {
+    cachedProvider = new GoogleAuthProvider();
+  }
+  return cachedProvider;
+}
+
+export const auth = getOrInitAuth();
+export const db = getOrInitDb();
+export const googleProvider = getOrInitProvider();
