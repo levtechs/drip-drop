@@ -149,7 +149,7 @@ export default function ConversationPage() {
         </div>
       </header>
 
-      <main className="flex-1 overflow-y-auto px-4 py-6">
+      <main className="flex-1 overflow-y-auto px-4 py-6 pb-24">
         <div className="container mx-auto max-w-2xl space-y-4">
           {messages.map((message) => {
             const isOwnMessage = message.senderId === user.uid;
@@ -187,7 +187,7 @@ export default function ConversationPage() {
         </div>
       </main>
 
-      <footer className="flex-none border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <footer className="flex-none border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 pb-24 lg:pb-4">
         <div className="container mx-auto max-w-2xl px-4 py-4">
           <form onSubmit={handleSendMessage} className="flex gap-3">
             <input
