@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDB, verifyAuthToken } from "../../../api/helpers";
+import { getDB, verifyAuthToken } from "../helpers";
 import { ListingType, CreateListingInput, ListingData } from "@/lib/types";
 
 export async function GET() {

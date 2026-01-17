@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDB } from "../../../../../api/helpers";
+import { getDB } from "../../../helpers";
 import { ListingData } from "@/lib/types";
 
 export async function GET(
