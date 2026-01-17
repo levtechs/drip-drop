@@ -85,6 +85,7 @@ export default function ListingDetailPage() {
   const [sendingDM, setSendingDM] = useState(false);
   const [sellerInfo, setSellerInfo] = useState<{ firstName: string; lastName: string; profilePicture: string } | null>(null);
   const [relatedListings, setRelatedListings] = useState<ListingData[]>([]);
+  const [existingConversationId, setExistingConversationId] = useState<string | null>(null);
 
   const isOwner = user && listing && user.uid === listing.userId;
 
@@ -133,6 +134,23 @@ export default function ListingDetailPage() {
     }
     fetchRelatedListings();
   }, [listing]);
+
+  useEffect(() => {
+    async function checkExistingConversation() {
+      if (user && listing && listing.userId !== user.uid) {
+        try {
+          const conversations = await import("@/app/views/messaging").then((m) => m.getConversations());
+          const existing = conversations.find((c) => c.listingId === listing.id);
+          if (existing) {
+            setExistingConversationId(existing.id);
+          }
+        } catch {
+          setExistingConversationId(null);
+        }
+      }
+    }
+    checkExistingConversation();
+  }, [user, listing]);
 
   useEffect(() => {
     async function checkSaved() {
@@ -445,21 +463,33 @@ export default function ListingDetailPage() {
             </div>
 
             {!isOwner && (
-              <button
-                onClick={() => {
-                  if (user) {
-                    setShowDMModal(true);
-                  } else {
-                    router.push("/login");
-                  }
-                }}
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 font-medium text-white transition-colors hover:bg-primary-hover"
-              >
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-                Message Seller
-              </button>
+              existingConversationId ? (
+                <Link
+                  href={`/messages/${existingConversationId}`}
+                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 font-medium text-white transition-colors hover:bg-primary-hover"
+                >
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                  View Conversation
+                </Link>
+              ) : (
+                <button
+                  onClick={() => {
+                    if (user) {
+                      setShowDMModal(true);
+                    } else {
+                      router.push("/login");
+                    }
+                  }}
+                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 font-medium text-white transition-colors hover:bg-primary-hover"
+                >
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                  Message Seller
+                </button>
+              )
             )}
 
             {relatedListings.length > 0 && (
