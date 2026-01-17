@@ -36,7 +36,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     async function fetchUserData() {
-      if (user) {
+      if (user && db) {
         const userRef = doc(db, "users", user.uid);
         const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/firebase";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { getDB } from "../../../../../api/helpers";
 import { ListingData } from "@/lib/types";
 
 export async function GET(
@@ -9,12 +8,10 @@ export async function GET(
 ) {
   try {
     const { userId } = await params;
-    const listingsRef = collection(db, "listings");
-    const q = query(
-      listingsRef,
-      where("userId", "==", userId)
-    );
-    const querySnapshot = await getDocs(q);
+    const db = getDB();
+    const listingsRef = db.collection("listings");
+    const q = listingsRef.where("userId", "==", userId).orderBy("createdAt", "desc");
+    const querySnapshot = await q.get();
     
     const listings: ListingData[] = [];
     querySnapshot.forEach((doc) => {
@@ -23,16 +20,11 @@ export async function GET(
         id: doc.id,
         title: data.title,
         description: data.description,
-        type: data.type,
+        type: data.type as ListingData["type"],
         userId: data.userId,
-        createdAt: {
-          seconds: data.createdAt?.seconds || 0,
-          nanoseconds: data.createdAt?.nanoseconds || 0,
-        },
+        createdAt: data.createdAt as ListingData["createdAt"],
       });
     });
-    
-    listings.sort((a, b) => b.createdAt.seconds - a.createdAt.seconds);
     
     return NextResponse.json(listings);
   } catch (error) {

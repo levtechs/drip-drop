@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/firebase";
-import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
-import { verifyAuthToken } from "../../../../api/helpers";
+import { getDB, verifyAuthToken } from "../../../../api/helpers";
 import { UpdateListingInput, ListingType } from "@/lib/types";
 
 export async function GET(
@@ -10,24 +8,22 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const listingRef = doc(db, "listings", id);
-    const listingSnap = await getDoc(listingRef);
+    const db = getDB();
+    const listingRef = db.collection("listings").doc(id);
+    const listingSnap = await listingRef.get();
     
-    if (!listingSnap.exists()) {
+    if (!listingSnap.exists) {
       return NextResponse.json({ error: "Listing not found" }, { status: 404 });
     }
     
-    const data = listingSnap.data();
+    const data = listingSnap.data()!;
     return NextResponse.json({
       id: listingSnap.id,
       title: data.title,
       description: data.description,
-      type: data.type,
+      type: data.type as ListingType,
       userId: data.userId,
-      createdAt: {
-        seconds: data.createdAt?.seconds || 0,
-        nanoseconds: data.createdAt?.nanoseconds || 0,
-      },
+      createdAt: data.createdAt,
     });
   } catch (error) {
     console.error("Error fetching listing:", error);
@@ -43,15 +39,16 @@ export async function PUT(
     const decodedToken = await verifyAuthToken(request);
     const verifiedUserId = decodedToken.uid;
     const { id } = await params;
+    const db = getDB();
     
-    const listingRef = doc(db, "listings", id);
-    const listingSnap = await getDoc(listingRef);
+    const listingRef = db.collection("listings").doc(id);
+    const listingSnap = await listingRef.get();
     
-    if (!listingSnap.exists()) {
+    if (!listingSnap.exists) {
       return NextResponse.json({ error: "Listing not found" }, { status: 404 });
     }
     
-    const listingData = listingSnap.data();
+    const listingData = listingSnap.data()!;
     
     if (listingData.userId !== verifiedUserId) {
       return NextResponse.json(
@@ -83,7 +80,7 @@ export async function PUT(
       updateData.type = body.type;
     }
     
-    await updateDoc(listingRef, updateData);
+    await listingRef.update(updateData);
     
     return NextResponse.json({
       id,
@@ -110,15 +107,16 @@ export async function DELETE(
     const decodedToken = await verifyAuthToken(request);
     const verifiedUserId = decodedToken.uid;
     const { id } = await params;
+    const db = getDB();
     
-    const listingRef = doc(db, "listings", id);
-    const listingSnap = await getDoc(listingRef);
+    const listingRef = db.collection("listings").doc(id);
+    const listingSnap = await listingRef.get();
     
-    if (!listingSnap.exists()) {
+    if (!listingSnap.exists) {
       return NextResponse.json({ error: "Listing not found" }, { status: 404 });
     }
     
-    const listingData = listingSnap.data();
+    const listingData = listingSnap.data()!;
     
     if (listingData.userId !== verifiedUserId) {
       return NextResponse.json(
@@ -127,7 +125,7 @@ export async function DELETE(
       );
     }
     
-    await deleteDoc(listingRef);
+    await listingRef.delete();
     
     return new NextResponse(null, { status: 204 });
     
