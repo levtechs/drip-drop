@@ -148,8 +148,8 @@ export async function GET(request: NextRequest) {
     }
 
     listings = listings.filter((listing) => {
-      if (listing.userId === currentUserId) return true;
       if (listing.isSold) return false;
+      if (listing.userId === currentUserId) return true;
       if (!listing.isPrivate) return true;
       if (currentUserSchoolId && listing.schoolId === currentUserSchoolId) return true;
       return false;
