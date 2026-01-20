@@ -11,6 +11,7 @@ import { getUserListings, deleteListing } from "@/app/views/listings";
 import { getSavedListings, toggleSavedListing } from "@/app/views/saved";
 import { getListings } from "@/app/views/listings";
 import Link from "next/link";
+import ProgressiveImage from "@/app/components/progressive-image";
 
 const typeColors: Record<string, string> = {
   clothes: "bg-blue-100 text-blue-800",
@@ -248,7 +249,7 @@ export default function ProfilePage() {
               </div>
             ) : (
               <div className="space-y-3">
-                {listings.map((listing) => (
+                {listings.map((listing, index) => (
                   <Link
                     key={listing.id}
                     href={`/listings/${listing.id}`}
@@ -256,10 +257,12 @@ export default function ProfilePage() {
                   >
                     <div className="h-20 w-20 flex-none rounded-lg bg-muted overflow-hidden">
                       {listing.imageUrls && listing.imageUrls.length > 0 ? (
-                        <img
+                        <ProgressiveImage
                           src={listing.imageUrls[0]}
                           alt={listing.title}
                           className="h-full w-full object-cover"
+                          index={index}
+                          priority={index < 6}
                         />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center text-muted-foreground">
@@ -343,7 +346,7 @@ export default function ProfilePage() {
               </div>
             ) : (
               <div className="space-y-3">
-                {savedListings.map((listing) => (
+                {savedListings.map((listing, index) => (
                   <Link
                     key={listing.id}
                     href={`/listings/${listing.id}`}
@@ -351,10 +354,12 @@ export default function ProfilePage() {
                   >
                     <div className="h-20 w-20 flex-none rounded-lg bg-muted overflow-hidden">
                       {listing.imageUrls && listing.imageUrls.length > 0 ? (
-                        <img
+                        <ProgressiveImage
                           src={listing.imageUrls[0]}
                           alt={listing.title}
                           className="h-full w-full object-cover"
+                          index={index}
+                          priority={index < 6}
                         />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center text-muted-foreground">
