@@ -179,10 +179,17 @@ export default function ProfilePage() {
                 {userData?.firstName} {userData?.lastName}
               </p>
               <p className="text-sm text-muted-foreground">{userData?.email || user.email}</p>
-              {schoolData && (
-                <p className="text-sm text-primary mt-1">
-                  🎓 {schoolData.name} ({schoolData.state})
-                </p>
+              {schoolData && userData?.schoolId && (
+                <Link
+                  href={`/schools/${userData.schoolId}`}
+                  className="inline-flex items-center gap-1 text-sm text-primary mt-1 hover:underline"
+                >
+                  <span>🎓</span>
+                  <span>{schoolData.name} ({schoolData.state})</span>
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </Link>
               )}
             </div>
           </div>
