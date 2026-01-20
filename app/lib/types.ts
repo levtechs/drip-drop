@@ -163,22 +163,45 @@ export interface TimestampData {
   nanoseconds: number;
 }
 
+function getSecondsFromTimestamp(timestamp: any): number {
+  if (!timestamp) return 0;
+  if (typeof timestamp === 'number') return timestamp;
+  if (typeof timestamp === 'object') {
+    if ('seconds' in timestamp) return (timestamp as TimestampData).seconds;
+    if ('_seconds' in timestamp) return timestamp._seconds;
+    if ('toMillis' in timestamp && typeof timestamp.toMillis === 'function') {
+      return Math.floor(timestamp.toMillis() / 1000);
+    }
+  }
+  return 0;
+}
+
 export function formatDate(timestamp: TimestampData | undefined | null): string {
-  if (!timestamp || !timestamp.seconds) {
+  const seconds = getSecondsFromTimestamp(timestamp);
+  
+  if (!seconds || seconds <= 0) {
     return "";
   }
-  const date = new Date(timestamp.seconds * 1000);
+  
+  const date = new Date(seconds * 1000);
   if (isNaN(date.getTime())) {
     return "";
   }
-  return date.toLocaleDateString();
+  return date.toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
 }
 
 export function formatDateTime(timestamp: TimestampData | undefined | null): string {
-  if (!timestamp || !timestamp.seconds) {
+  const seconds = getSecondsFromTimestamp(timestamp);
+  
+  if (!seconds || seconds <= 0) {
     return "";
   }
-  const date = new Date(timestamp.seconds * 1000);
+  
+  const date = new Date(seconds * 1000);
   if (isNaN(date.getTime())) {
     return "";
   }
@@ -186,10 +209,13 @@ export function formatDateTime(timestamp: TimestampData | undefined | null): str
 }
 
 export function formatTime(timestamp: TimestampData | undefined | null): string {
-  if (!timestamp || !timestamp.seconds) {
+  const seconds = getSecondsFromTimestamp(timestamp);
+  
+  if (!seconds || seconds <= 0) {
     return "";
   }
-  const date = new Date(timestamp.seconds * 1000);
+  
+  const date = new Date(seconds * 1000);
   if (isNaN(date.getTime())) {
     return "";
   }
