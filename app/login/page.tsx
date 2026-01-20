@@ -2,9 +2,9 @@
 
 import { useAuth } from "@/app/lib/auth-context";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 
-export default function LoginPage() {
+function LoginContent() {
   const { user, signInWithGoogle, loading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -54,5 +54,19 @@ export default function LoginPage() {
         </button>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   );
 }
