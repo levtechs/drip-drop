@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDB, verifyAuthToken } from "../helpers";
 import { CreateSchoolInput, SchoolData } from "@/app/lib/types";
 import { US_STATES } from "@/app/lib/constants";
+import admin from "firebase-admin";
 
 export async function GET() {
   try {
@@ -70,7 +71,7 @@ export async function POST(request: NextRequest) {
       name: body.name.trim(),
       state: body.state,
       memberCount: 1,
-      createdAt: new Date(),
+      createdAt: admin.firestore.Timestamp.now(),
     };
 
     const docRef = await schoolsRef.add(schoolData);

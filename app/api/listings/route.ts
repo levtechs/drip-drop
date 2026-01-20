@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     const db = getDB();
     const listingsRef = db.collection("listings");
 
-    let queryRef: any = listingsRef;
+    let queryRef = listingsRef as any;
     let hasScopeFilter = false;
 
     if (scope && scope !== "all") {
@@ -45,19 +45,23 @@ export async function GET(request: NextRequest) {
                 
                 const stateSchoolIds = stateSchoolsSnapshot.docs.map((s) => s.id);
                 if (stateSchoolIds.length > 0) {
-                  const maxInClause = 30;
+                  const maxInClause = 10;
                   if (stateSchoolIds.length <= maxInClause) {
                     queryRef = listingsRef.where("schoolId", "in", stateSchoolIds);
+                    hasScopeFilter = true;
                   } else {
-                    queryRef = listingsRef.where("schoolId", "in", stateSchoolIds.slice(0, maxInClause));
+                    return NextResponse.json(
+                      { error: "Too many schools in this state to filter. Please try again later." },
+                      { status: 400 }
+                    );
                   }
-                  hasScopeFilter = true;
                 }
               }
             }
           }
         } catch (err) {
           console.error("Error filtering by scope:", err);
+          return NextResponse.json({ error: "Failed to apply scope filter" }, { status: 400 });
         }
       }
     }
