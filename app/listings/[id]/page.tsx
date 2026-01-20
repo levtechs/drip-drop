@@ -647,26 +647,67 @@ export default function ListingDetailPage() {
             {relatedListings.length > 0 && (
               <div className="mt-8 pt-6 border-t border-border">
                 <h3 className="mb-4 text-lg font-semibold">More {typeLabels[listing.type]}</h3>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid grid-cols-2 gap-3 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
                   {relatedListings.map((related) => (
                     <Link
                       key={related.id}
                       href={`/listings/${related.id}`}
-                      className="group block rounded-xl border border-border bg-card p-4 transition-all hover:border-primary/50 hover:shadow-md"
+                      className="group relative flex flex-col overflow-hidden rounded-2xl bg-card shadow-sm ring-1 ring-border/50 transition-all hover:shadow-md hover:ring-border hover:-translate-y-1"
                     >
-                      <div className="mb-2 flex items-start justify-between">
-                        {related.price > 0 && (
-                          <span className="font-semibold text-green-600">
-                            ${related.price.toFixed(2)}
-                          </span>
+                      <div className="aspect-square w-full overflow-hidden bg-muted relative">
+                        {related.imageUrls && related.imageUrls.length > 0 ? (
+                          <img
+                            src={related.imageUrls[0]}
+                            alt={related.title}
+                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-muted-foreground bg-muted/50">
+                            <svg className="h-12 w-12 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                          </div>
+                        )}
+                        <div className="absolute top-2 right-2 z-10 flex gap-1">
+                          {related.condition && (
+                            <span className="inline-block backdrop-blur-md bg-black/40 text-white text-[10px] font-semibold px-2 py-1 rounded-full">
+                              {conditionLabels[related.condition]}
+                            </span>
+                          )}
+                          {related.size && (
+                            <span className="inline-block backdrop-blur-md bg-black/40 text-white text-[10px] font-semibold px-2 py-1 rounded-full">
+                              {sizeLabels[related.size]}
+                            </span>
+                          )}
+                        </div>
+                        {related.imageUrls && related.imageUrls.length > 1 && (
+                          <div className="absolute bottom-2 right-2 rounded-full bg-black/60 backdrop-blur-sm px-2 py-0.5 text-[10px] font-medium text-white">
+                            +{related.imageUrls.length - 1}
+                          </div>
                         )}
                       </div>
-                      <h4 className="font-semibold group-hover:text-primary line-clamp-1 text-sm">
-                        {related.title}
-                      </h4>
-                      <p className="mt-1 text-xs text-muted-foreground line-clamp-2">
-                        {related.description}
-                      </p>
+                      <div className="flex flex-col flex-1 p-3 sm:p-4">
+                        <h3 className="font-semibold text-foreground text-sm sm:text-base line-clamp-1 mb-1">
+                          {related.title}
+                        </h3>
+                        <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 mb-3 flex-1">
+                          {related.description}
+                        </p>
+                        <div className="flex items-center justify-between mt-auto">
+                          {related.price > 0 ? (
+                            <span className="font-bold text-base sm:text-lg text-primary">
+                              ${related.price.toFixed(2)}
+                            </span>
+                          ) : (
+                            <span className="font-bold text-base sm:text-lg text-green-600">
+                              Free
+                            </span>
+                          )}
+                          <span className="text-[10px] sm:text-xs text-muted-foreground">
+                            {formatDate(related.createdAt)}
+                          </span>
+                        </div>
+                      </div>
                     </Link>
                   ))}
                 </div>
