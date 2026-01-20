@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDB, verifyAuthToken } from "../helpers";
+import { getDB, verifyAuthToken, getAdminAuth } from "../helpers";
 import { ListingType, CreateListingInput, ListingData, ClothingType } from "@/app/lib/types";
 
 export async function GET(request: NextRequest) {
@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
     const minPrice = searchParams.get("minPrice");
     const maxPrice = searchParams.get("maxPrice");
     const search = searchParams.get("search");
+    const scope = searchParams.get("scope") as "school" | "state" | "all" | null;
 
     const db = getDB();
     const listingsRef = db.collection("listings");
@@ -27,6 +28,7 @@ export async function GET(request: NextRequest) {
         type: data.type,
         clothingType: data.clothingType,
         userId: data.userId,
+        schoolId: data.schoolId,
         createdAt: {
           seconds: data.createdAt?.seconds || 0,
           nanoseconds: data.createdAt?.nanoseconds || 0,
@@ -34,6 +36,40 @@ export async function GET(request: NextRequest) {
         imageUrls: data.imageUrls,
       });
     });
+
+    if (scope && scope !== "all") {
+      const authHeader = request.headers.get("Authorization");
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        try {
+          const firebaseAuth = getAdminAuth();
+          const token = authHeader.split(" ")[1];
+          const decodedToken = await firebaseAuth.verifyIdToken(token);
+          const userId = decodedToken.uid;
+
+          const userDoc = await db.collection("users").doc(userId).get();
+          const userData = userDoc.data();
+          const userSchoolId = userData?.schoolId;
+
+          if (userSchoolId) {
+            const schoolDoc = await db.collection("schools").doc(userSchoolId).get();
+            const schoolData = schoolDoc.data();
+
+            if (scope === "school") {
+              listings = listings.filter((l) => l.schoolId === userSchoolId);
+            } else if (scope === "state" && schoolData) {
+              const stateSchools = await db.collection("schools")
+                .where("state", "==", schoolData.state)
+                .get();
+              
+              const stateSchoolIds = new Set(stateSchools.docs.map((s) => s.id));
+              listings = listings.filter((l) => l.schoolId && stateSchoolIds.has(l.schoolId));
+            }
+          }
+        } catch (err) {
+          console.error("Error filtering by scope:", err);
+        }
+      }
+    }
 
     if (type) {
       listings = listings.filter((l) => l.type === type);
@@ -94,12 +130,17 @@ export async function POST(request: NextRequest) {
     const db = getDB();
     const listingsRef = db.collection("listings");
     
+    const userDoc = await db.collection("users").doc(userId).get();
+    const userData = userDoc.data();
+    const schoolId = userData?.schoolId;
+    
     const listingData: Record<string, unknown> = {
       title: body.title,
       description: body.description,
       price: body.price,
       type: body.type,
       userId: userId,
+      schoolId: schoolId || null,
       createdAt: new Date(),
       imageUrls: body.imageUrls || [],
     };
@@ -117,6 +158,7 @@ export async function POST(request: NextRequest) {
       price: body.price,
       type: body.type,
       userId: userId,
+      schoolId: schoolId || null,
       createdAt: {
         seconds: Date.now() / 1000,
         nanoseconds: 0,
