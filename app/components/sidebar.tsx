@@ -22,8 +22,8 @@ export default function Sidebar() {
   return (
     <aside className="hidden lg:flex fixed left-0 top-0 h-screen w-64 border-r border-border/60 bg-background/95 backdrop-blur-xl flex-col p-6 z-40">
       <div className="mb-10 px-2 flex items-center gap-2">
-        <span className="text-3xl">💧</span>
-        <span className="text-xl font-bold tracking-tight">Drip Drop</span>
+        <span className="text-3xl">🏷️</span>
+        <span className="text-xl font-bold tracking-tight">Thryft</span>
       </div>
 
       <nav className="flex-1 space-y-1">
@@ -119,7 +119,7 @@ export default function Sidebar() {
       
       <div className="mt-auto px-4 py-4 border-t border-border/50">
         <p className="text-xs text-muted-foreground text-center">
-          © 2025 Drip Drop
+          © 2025 Thryft
         </p>
       </div>
     </aside>

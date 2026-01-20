@@ -33,7 +33,7 @@ function LoginContent() {
         <div className="text-center space-y-2">
           <span className="text-4xl">💧</span>
           <h1 className="text-2xl font-bold tracking-tight text-card-foreground">Welcome Back</h1>
-          <p className="text-sm text-muted-foreground">Sign in to continue to Drip Drop</p>
+          <p className="text-sm text-muted-foreground">Sign in to continue to Thryft</p>
         </div>
         
         <button

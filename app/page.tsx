@@ -52,8 +52,8 @@ export default function Home() {
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <Link href="/" className="flex items-center space-x-2">
-            <span className="text-2xl">💧</span>
-            <span className="text-xl font-bold">Drip Drop</span>
+            <span className="text-2xl">🏷️</span>
+            <span className="text-xl font-bold">Thryft</span>
           </Link>
           <Link
             href="/login?redirect=/listings"
@@ -114,7 +114,7 @@ export default function Home() {
         <section className="py-12 md:py-24">
           <div className="container mx-auto px-4">
             <h2 className="text-center text-3xl font-bold tracking-tight sm:text-4xl mb-12">
-              Why Students Love Drip Drop
+              Why Students Love Thryft
             </h2>
             <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
               {features.map((feature) => (
@@ -156,7 +156,7 @@ export default function Home() {
 
       <footer className="border-t border-border py-8">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>© 2025 Drip Drop. Made for students, by students.</p>
+          <p>© 2025 Thryft. Made for students, by students.</p>
         </div>
       </footer>
     </div>
