@@ -43,7 +43,8 @@ export default function SchoolPage() {
 
   const [school, setSchool] = useState<SchoolData | null>(null);
   const [members, setMembers] = useState<MemberData[]>([]);
-  const [listings, setListings] = useState<ListingData[]>([]);
+  const [activeListings, setActiveListings] = useState<ListingData[]>([]);
+  const [soldListings, setSoldListings] = useState<ListingData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -117,9 +118,14 @@ export default function SchoolPage() {
 
         const listingsData = await getListings({ scope: "school" });
         const schoolListings = listingsData.filter((l) => l.schoolId === schoolId);
-        const activeListings = schoolListings.filter((l) => !l.isSold);
-        const soldListings = schoolListings.filter((l) => l.isSold);
-        setListings([...activeListings, ...soldListings]);
+        const active: ListingData[] = [];
+        const sold: ListingData[] = [];
+        for (const l of schoolListings) {
+          if (l.isSold) sold.push(l);
+          else active.push(l);
+        }
+        setActiveListings(active);
+        setSoldListings(sold);
       } catch (err) {
         console.error("Error fetching school:", err);
         setError("Failed to load school");
@@ -191,7 +197,8 @@ export default function SchoolPage() {
         throw new Error(data.error || "Failed to remove listing");
       }
 
-      setListings(listings.filter((l) => l.id !== listingId));
+      setActiveListings(activeListings.filter((l) => l.id !== listingId));
+      setSoldListings(soldListings.filter((l) => l.id !== listingId));
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to remove listing");
     }
@@ -380,7 +387,7 @@ export default function SchoolPage() {
                 <p className="text-sm text-muted-foreground">members</p>
               </div>
               <div className="text-center">
-                <p className="text-3xl font-bold text-primary">{listings.filter((l) => !l.isSold).length}</p>
+                <p className="text-3xl font-bold text-primary">{activeListings.length}</p>
                 <p className="text-sm text-muted-foreground">listings</p>
               </div>
               {isAdmin && (
@@ -429,7 +436,7 @@ export default function SchoolPage() {
           <div className="lg:col-span-2">
             <h2 className="mb-4 text-xl font-semibold">Listings from {school.name}</h2>
 
-            {listings.length === 0 ? (
+            {activeListings.length === 0 && soldListings.length === 0 ? (
               <div className="rounded-xl border border-border bg-card p-8 text-center">
                 <p className="text-lg text-muted-foreground">
                   No listings from this school yet.
@@ -445,7 +452,7 @@ export default function SchoolPage() {
               </div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2">
-                {listings.filter((l) => !l.isSold).map((listing) => (
+                {activeListings.map((listing) => (
                   <div
                     key={listing.id}
                     className="group block rounded-xl border border-border bg-card transition-all hover:border-primary/50 hover:shadow-md"
@@ -504,12 +511,12 @@ export default function SchoolPage() {
                     )}
                   </div>
                 ))}
-                {listings.filter((l) => l.isSold).length > 0 && (
+                {soldListings.length > 0 && (
                   <>
                     <div className="col-span-full pt-4">
                       <h3 className="text-lg font-semibold text-muted-foreground">Sold Listings</h3>
                     </div>
-                    {listings.filter((l) => l.isSold).map((listing) => (
+                    {soldListings.map((listing) => (
                       <div
                         key={listing.id}
                         className="group block rounded-xl border border-border bg-card transition-all hover:border-primary/50 opacity-75"
