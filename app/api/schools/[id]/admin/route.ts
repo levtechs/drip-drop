@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDB, verifyAuthToken } from "../../../helpers";
+import admin from "firebase-admin";
 
 export async function POST(
   request: NextRequest,
@@ -29,63 +30,84 @@ export async function POST(
 
     const db = getDB();
     const schoolRef = db.collection("schools").doc(schoolId);
-    const schoolSnap = await schoolRef.get();
-
-    if (!schoolSnap.exists) {
-      return NextResponse.json(
-        { error: "School not found" },
-        { status: 404 }
-      );
-    }
-
-    const schoolData = schoolSnap.data();
-    const adminIds = schoolData?.adminIds || [];
-
-    if (!adminIds.includes(userId)) {
-      return NextResponse.json(
-        { error: "Only admins can manage school admins" },
-        { status: 403 }
-      );
-    }
 
     if (action === "add") {
-      if (adminIds.includes(targetUserId)) {
-        return NextResponse.json(
-          { error: "User is already an admin" },
-          { status: 400 }
-        );
-      }
+      let resultAdminIds: string[] = [];
 
-      await schoolRef.update({
-        adminIds: [...adminIds, targetUserId],
+      await db.runTransaction(async (transaction) => {
+        const schoolSnap = await transaction.get(schoolRef);
+
+        if (!schoolSnap.exists) {
+          throw new Error("School not found");
+        }
+
+        const schoolData = schoolSnap.data();
+        const currentAdminIds = schoolData?.adminIds || [];
+
+        if (!currentAdminIds.includes(userId)) {
+          throw new Error("Only admins can manage school admins");
+        }
+
+        if (currentAdminIds.includes(targetUserId)) {
+          throw new Error("User is already an admin");
+        }
+
+        resultAdminIds = [...currentAdminIds, targetUserId];
+        transaction.update(schoolRef, { adminIds: resultAdminIds });
       });
 
-      return NextResponse.json({ success: true, adminIds: [...adminIds, targetUserId] });
+      return NextResponse.json({ success: true, adminIds: resultAdminIds });
     } else {
-      if (!adminIds.includes(targetUserId)) {
-        return NextResponse.json(
-          { error: "User is not an admin" },
-          { status: 400 }
-        );
-      }
+      let resultAdminIds: string[] = [];
 
-      if (adminIds.length <= 1) {
-        return NextResponse.json(
-          { error: "Cannot remove the last admin" },
-          { status: 400 }
-        );
-      }
+      await db.runTransaction(async (transaction) => {
+        const schoolSnap = await transaction.get(schoolRef);
 
-      const newAdminIds = adminIds.filter((id: string) => id !== targetUserId);
+        if (!schoolSnap.exists) {
+          throw new Error("School not found");
+        }
 
-      await schoolRef.update({
-        adminIds: newAdminIds,
+        const schoolData = schoolSnap.data();
+        const currentAdminIds = schoolData?.adminIds || [];
+
+        if (!currentAdminIds.includes(userId)) {
+          throw new Error("Only admins can manage school admins");
+        }
+
+        if (!currentAdminIds.includes(targetUserId)) {
+          throw new Error("User is not an admin");
+        }
+
+        if (currentAdminIds.length <= 1) {
+          throw new Error("Cannot remove the last admin");
+        }
+
+        resultAdminIds = currentAdminIds.filter((id: string) => id !== targetUserId);
+        transaction.update(schoolRef, { adminIds: resultAdminIds });
       });
 
-      return NextResponse.json({ success: true, adminIds: newAdminIds });
+      return NextResponse.json({ success: true, adminIds: resultAdminIds });
     }
-  } catch (error) {
+    } catch (error) {
     console.error("Error managing school admin:", error);
+
+    if (error instanceof Error) {
+      if (error.message === "School not found") {
+        return NextResponse.json({ error: "School not found" }, { status: 404 });
+      }
+      if (error.message === "Only admins can manage school admins") {
+        return NextResponse.json({ error: "Only admins can manage school admins" }, { status: 403 });
+      }
+      if (error.message === "User is already an admin") {
+        return NextResponse.json({ error: "User is already an admin" }, { status: 400 });
+      }
+      if (error.message === "User is not an admin") {
+        return NextResponse.json({ error: "User is not an admin" }, { status: 400 });
+      }
+      if (error.message === "Cannot remove the last admin") {
+        return NextResponse.json({ error: "Cannot remove the last admin" }, { status: 400 });
+      }
+    }
 
     if (error instanceof Error && error.message.includes("authorization")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -121,17 +143,20 @@ export async function GET(
     const isAdmin = adminIds.includes(userId);
 
     const usersRef = db.collection("users");
-    const admins = [];
+    const admins: { uid: string; firstName: string; lastName: string; profilePicture: string }[] = [];
 
-    for (const adminId of adminIds) {
-      const userSnap = await usersRef.doc(adminId).get();
-      if (userSnap.exists) {
-        const userData = userSnap.data();
-        admins.push({
-          uid: adminId,
-          firstName: userData?.firstName || "",
-          lastName: userData?.lastName || "",
-          profilePicture: userData?.profilePicture || "",
+    for (let i = 0; i < adminIds.length; i += 30) {
+      const chunk = adminIds.slice(i, i + 30);
+      if (chunk.length > 0) {
+        const usersSnap = await usersRef.where(admin.firestore.FieldPath.documentId(), "in", chunk).get();
+        usersSnap.forEach((userSnap) => {
+          const userData = userSnap.data();
+          admins.push({
+            uid: userSnap.id,
+            firstName: userData?.firstName || "",
+            lastName: userData?.lastName || "",
+            profilePicture: userData?.profilePicture || "",
+          });
         });
       }
     }

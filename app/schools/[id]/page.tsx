@@ -101,24 +101,17 @@ export default function SchoolPage() {
         setMembers(membersData);
 
         if (user) {
-          const isUserAdmin = adminIds.includes(user.uid);
-          setIsAdmin(isUserAdmin);
+          const token = await user.getIdToken();
+          const adminResponse = await fetch(`/api/schools/${schoolId}/admin`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
 
-          if (isUserAdmin) {
-            const adminsData: AdminUser[] = [];
-            for (const adminId of adminIds) {
-              const userSnap = await getDoc(doc(db, "users", adminId));
-              if (userSnap.exists()) {
-                const userData = userSnap.data();
-                adminsData.push({
-                  uid: adminId,
-                  firstName: userData.firstName || "",
-                  lastName: userData.lastName || "",
-                  profilePicture: userData.profilePicture || "",
-                });
-              }
-            }
-            setAdmins(adminsData);
+          if (adminResponse.ok) {
+            const adminData = await adminResponse.json();
+            setIsAdmin(adminData.isAdmin);
+            setAdmins(adminData.admins);
           }
         }
 
@@ -239,52 +232,62 @@ export default function SchoolPage() {
       return;
     }
 
-    const targetMember = members.find(
-      (m) => m.firstName && m.lastName && 
-      (`${m.firstName.toLowerCase()}@gmail.com` === newAdminEmail.toLowerCase() || 
-       `${m.firstName.toLowerCase()}.${m.lastName.toLowerCase()}@gmail.com` === newAdminEmail.toLowerCase())
-    );
-
-    if (!targetMember) {
-      setErrorMessage("Could not find a member with that email. Please make sure they are a member of this school.");
-      return;
-    }
-
-    if (targetMember.isAdmin) {
-      setErrorMessage("This member is already an admin");
-      return;
-    }
-
     try {
       const token = await user?.getIdToken();
-      const response = await fetch(`/api/schools/${schoolId}/admin`, {
+      const lookupResponse = await fetch(`/api/users/by-email`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          targetUserId: targetMember.uid,
+          email: newAdminEmail,
+          schoolId,
+        }),
+      });
+
+      if (!lookupResponse.ok) {
+        const data = await lookupResponse.json();
+        throw new Error(data.error || "User not found");
+      }
+
+      const targetUser = await lookupResponse.json();
+
+      if (targetUser.isAdmin) {
+        setErrorMessage("This member is already an admin");
+        return;
+      }
+
+      const adminResponse = await fetch(`/api/schools/${schoolId}/admin`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          targetUserId: targetUser.uid,
           action: "add",
         }),
       });
 
-      const data = await response.json();
+      const data = await adminResponse.json();
 
-      if (!response.ok) {
+      if (!adminResponse.ok) {
         throw new Error(data.error || "Failed to add admin");
       }
 
-      setMembers(members.map((m) => 
-        m.uid === targetMember.uid ? { ...m, isAdmin: true } : m
+      setMembers(members.map((m) =>
+        m.uid === targetUser.uid ? { ...m, isAdmin: true } : m
       ));
       setAdmins([...admins, {
-        uid: targetMember.uid,
-        firstName: targetMember.firstName,
-        lastName: targetMember.lastName,
-        profilePicture: targetMember.profilePicture,
+        uid: targetUser.uid,
+        firstName: targetUser.firstName,
+        lastName: targetUser.lastName,
+        profilePicture: targetUser.profilePicture,
       }]);
-      setSchool({ ...school, adminIds: data.adminIds } as SchoolData);
+      if (school) {
+        setSchool({ ...school, adminIds: data.adminIds });
+      }
       setNewAdminEmail("");
       setErrorMessage(null);
     } catch (err) {
@@ -315,11 +318,13 @@ export default function SchoolPage() {
         throw new Error(data.error || "Failed to remove admin");
       }
 
-      setMembers(members.map((m) => 
+      setMembers(members.map((m) =>
         m.uid === userId ? { ...m, isAdmin: false } : m
       ));
       setAdmins(admins.filter((a) => a.uid !== userId));
-      setSchool({ ...school, adminIds: data.adminIds } as SchoolData);
+      if (school) {
+        setSchool({ ...school, adminIds: data.adminIds });
+      }
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to remove admin");
     }
@@ -417,7 +422,7 @@ export default function SchoolPage() {
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="lg:col-span-2">
             <h2 className="mb-4 text-xl font-semibold">Listings from {school.name}</h2>
-            
+
             {listings.length === 0 ? (
               <div className="rounded-xl border border-border bg-card p-8 text-center">
                 <p className="text-lg text-muted-foreground">
@@ -499,7 +504,7 @@ export default function SchoolPage() {
 
           <div>
             <h2 className="mb-4 text-xl font-semibold">Members</h2>
-            
+
             {members.length === 0 ? (
               <div className="rounded-xl border border-border bg-card p-8 text-center">
                 <p className="text-muted-foreground">No members yet</p>
@@ -640,7 +645,11 @@ export default function SchoolPage() {
                     <div key={admin.uid} className="flex items-center justify-between p-2 rounded-lg bg-muted">
                       <div className="flex items-center gap-2">
                         {admin.profilePicture ? (
-                          <img src={admin.profilePicture} alt="" className="h-8 w-8 rounded-full" />
+                          <img
+                            src={admin.profilePicture}
+                            alt={`${admin.firstName} ${admin.lastName}`}
+                            className="h-8 w-8 rounded-full"
+                          />
                         ) : (
                           <div className="h-8 w-8 rounded-full bg-primary/20" />
                         )}
@@ -662,13 +671,13 @@ export default function SchoolPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Add Admin</label>
-                <p className="text-xs text-muted-foreground mb-2">Enter the member's Gmail address (e.g., john.doe@gmail.com)</p>
+                <p className="text-xs text-muted-foreground mb-2">Enter the member&apos;s email address</p>
                 <div className="flex gap-2">
                   <input
                     type="email"
                     value={newAdminEmail}
                     onChange={(e) => setNewAdminEmail(e.target.value)}
-                    placeholder="member@gmail.com"
+                    placeholder="member@example.com"
                     className="flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm"
                   />
                   <button

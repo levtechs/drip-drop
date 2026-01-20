@@ -229,11 +229,6 @@ export async function DELETE(
 
       return NextResponse.json({ success: true, message: "Member removed" });
     }
-
-    return NextResponse.json(
-      { error: "Invalid action" },
-      { status: 400 }
-    );
   } catch (error) {
     console.error("Error performing school action:", error);
 
