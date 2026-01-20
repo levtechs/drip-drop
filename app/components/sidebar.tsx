@@ -20,21 +20,19 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="hidden lg:flex fixed left-0 top-0 h-screen w-64 border-r border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex-col p-4">
-      <div className="mb-8 px-2">
-        <Link href="/listings" className="flex items-center gap-2">
-          <span className="text-2xl">💧</span>
-          <span className="text-xl font-bold">Drip Drop</span>
-        </Link>
+    <aside className="hidden lg:flex fixed left-0 top-0 h-screen w-64 border-r border-border/60 bg-background/95 backdrop-blur-xl flex-col p-6 z-40">
+      <div className="mb-10 px-2 flex items-center gap-2">
+        <span className="text-3xl">💧</span>
+        <span className="text-xl font-bold tracking-tight">Drip Drop</span>
       </div>
 
-      <nav className="flex-1 space-y-2">
+      <nav className="flex-1 space-y-1">
         <Link
           href="/listings"
-          className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors ${
+          className={`group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
             isActive("/listings")
-              ? "bg-primary text-white"
-              : "text-muted-foreground hover:bg-muted hover:text-primary"
+              ? "bg-primary text-white shadow-md shadow-primary/20"
+              : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
           }`}
         >
           <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -49,10 +47,10 @@ export default function Sidebar() {
         </Link>
         <Link
           href="/create"
-          className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors ${
+          className={`group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
             pathname === "/create"
-              ? "bg-primary text-white"
-              : "text-muted-foreground hover:bg-muted hover:text-primary"
+              ? "bg-primary text-white shadow-md shadow-primary/20"
+              : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
           }`}
         >
           <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -62,10 +60,10 @@ export default function Sidebar() {
         </Link>
         <Link
           href="/messages"
-          className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors ${
+          className={`group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
             pathname.startsWith("/messages")
-              ? "bg-primary text-white"
-              : "text-muted-foreground hover:bg-muted hover:text-primary"
+              ? "bg-primary text-white shadow-md shadow-primary/20"
+              : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
           }`}
         >
           <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -81,10 +79,10 @@ export default function Sidebar() {
         {user ? (
           <Link
             href="/profile"
-            className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors ${
+            className={`group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
               pathname === "/profile"
-                ? "bg-primary text-white"
-                : "text-muted-foreground hover:bg-muted hover:text-primary"
+                ? "bg-primary text-white shadow-md shadow-primary/20"
+                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
             }`}
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -100,10 +98,10 @@ export default function Sidebar() {
         ) : (
           <Link
             href={`/login?redirect=${encodeURIComponent(pathname)}`}
-            className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors ${
+            className={`group flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
               pathname === "/login"
-                ? "bg-primary text-white"
-                : "text-muted-foreground hover:bg-muted hover:text-primary"
+                ? "bg-primary text-white shadow-md shadow-primary/20"
+                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
             }`}
           >
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -118,6 +116,12 @@ export default function Sidebar() {
           </Link>
         )}
       </nav>
+      
+      <div className="mt-auto px-4 py-4 border-t border-border/50">
+        <p className="text-xs text-muted-foreground text-center">
+          © 2025 Drip Drop
+        </p>
+      </div>
     </aside>
   );
 }
