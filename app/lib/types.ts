@@ -2,6 +2,8 @@ import { Timestamp } from "firebase/firestore";
 
 export type ListingType = "clothes" | "textbooks" | "tech" | "furniture" | "tickets" | "services" | "other";
 export type ClothingType = "tops" | "bottoms" | "outerwear" | "footwear" | "accessories" | "dresses" | "other";
+export type Condition = "new" | "like_new" | "used_good" | "used_fair";
+export type Size = "xs" | "s" | "m" | "l" | "xl" | "xxl";
 
 export interface Listing {
   id: string;
@@ -10,6 +12,8 @@ export interface Listing {
   price: number;
   type: ListingType;
   clothingType?: ClothingType;
+  condition?: Condition;
+  size?: Size;
   userId: string;
   schoolId?: string;
   isPrivate: boolean;
@@ -24,6 +28,8 @@ export interface ListingData {
   price: number;
   type: ListingType;
   clothingType?: ClothingType;
+  condition?: Condition;
+  size?: Size;
   userId: string;
   schoolId?: string;
   isPrivate: boolean;
@@ -40,6 +46,8 @@ export interface CreateListingInput {
   price: number;
   type: ListingType;
   clothingType?: ClothingType;
+  condition?: Condition;
+  size?: Size;
   imageUrls?: string[];
   isPrivate?: boolean;
 }
@@ -50,6 +58,8 @@ export interface UpdateListingInput {
   price?: number;
   type?: ListingType;
   clothingType?: ClothingType;
+  condition?: Condition;
+  size?: Size;
   imageUrls?: string[];
   isPrivate?: boolean;
 }
@@ -145,6 +155,8 @@ export interface UserData {
 export interface FilterOptions {
   type?: ListingType;
   clothingType?: ClothingType;
+  condition?: Condition;
+  size?: Size;
   minPrice?: number;
   maxPrice?: number;
   search?: string;

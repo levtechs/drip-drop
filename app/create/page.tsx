@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/app/lib/auth-context";
 import { createListing } from "@/app/views/listings";
-import { ListingType, ClothingType } from "@/app/lib/types";
+import { ListingType, ClothingType, Condition, Size } from "@/app/lib/types";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/app/lib/firebase";
 import ImageUpload from "@/app/components/image-upload";
@@ -30,6 +30,22 @@ const clothingTypeOptions: { value: ClothingType; label: string }[] = [
   { value: "other", label: "Other" },
 ];
 
+const conditionOptions: { value: Condition; label: string }[] = [
+  { value: "new", label: "New" },
+  { value: "like_new", label: "Like New" },
+  { value: "used_good", label: "Used - Good" },
+  { value: "used_fair", label: "Used - Fair" },
+];
+
+const sizeOptions: { value: Size; label: string }[] = [
+  { value: "xs", label: "XS" },
+  { value: "s", label: "S" },
+  { value: "m", label: "M" },
+  { value: "l", label: "L" },
+  { value: "xl", label: "XL" },
+  { value: "xxl", label: "XXL" },
+];
+
 export default function CreateListingPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
@@ -38,6 +54,8 @@ export default function CreateListingPage() {
   const [price, setPrice] = useState("");
   const [type, setType] = useState<ListingType>("other");
   const [clothingType, setClothingType] = useState<ClothingType | undefined>(undefined);
+  const [condition, setCondition] = useState<Condition | undefined>(undefined);
+  const [size, setSize] = useState<Size | undefined>(undefined);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [isPrivate, setIsPrivate] = useState(true);
   const [schoolName, setSchoolName] = useState("your school");
@@ -110,6 +128,8 @@ export default function CreateListingPage() {
         price: priceNum,
         type,
         clothingType: type === "clothes" ? clothingType : undefined,
+        condition,
+        size,
         imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
         isPrivate,
       });
@@ -152,7 +172,7 @@ export default function CreateListingPage() {
               />
             </div>
 
-            <div className="grid gap-6 sm:grid-cols-2">
+            <div className="grid gap-6 sm:grid-cols-3">
               <div className="space-y-2">
                 <label htmlFor="type" className="text-sm font-semibold leading-none">
                   Category
@@ -202,31 +222,85 @@ export default function CreateListingPage() {
                   />
                 </div>
               </div>
-            </div>
 
-            {type === "clothes" && (
-              <div className="space-y-2 animate-in slide-in-from-top-2 duration-200">
-                <label htmlFor="clothingType" className="text-sm font-semibold leading-none">
-                  Clothing Type
+              <div className="space-y-2">
+                <label htmlFor="condition" className="text-sm font-semibold leading-none">
+                  Condition
                 </label>
                 <div className="relative">
                   <select
-                    id="clothingType"
-                    value={clothingType || ""}
-                    onChange={(e) => setClothingType(e.target.value as ClothingType)}
+                    id="condition"
+                    value={condition || ""}
+                    onChange={(e) => setCondition(e.target.value as Condition || undefined)}
                     className="flex h-12 w-full appearance-none rounded-xl border border-input bg-background px-4 py-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-all"
                   >
-                    <option value="">Select type</option>
-                    {clothingTypeOptions.map((option) => (
+                    <option value="">Select</option>
+                    {conditionOptions.map((option) => (
                       <option key={option.value} value={option.value}>
                         {option.label}
                       </option>
                     ))}
                   </select>
-                   <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+                  <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {type === "clothes" && (
+              <div className="grid gap-6 sm:grid-cols-2 animate-in slide-in-from-top-2 duration-200">
+                <div className="space-y-2">
+                  <label htmlFor="clothingType" className="text-sm font-semibold leading-none">
+                    Clothing Type
+                  </label>
+                  <div className="relative">
+                    <select
+                      id="clothingType"
+                      value={clothingType || ""}
+                      onChange={(e) => setClothingType(e.target.value as ClothingType)}
+                      className="flex h-12 w-full appearance-none rounded-xl border border-input bg-background px-4 py-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-all"
+                    >
+                      <option value="">Select type</option>
+                      {clothingTypeOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                     <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="size" className="text-sm font-semibold leading-none">
+                    Size
+                  </label>
+                  <div className="relative">
+                    <select
+                      id="size"
+                      value={size || ""}
+                      onChange={(e) => setSize(e.target.value as Size || undefined)}
+                      className="flex h-12 w-full appearance-none rounded-xl border border-input bg-background px-4 py-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-all"
+                    >
+                      <option value="">Select size</option>
+                      {sizeOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                     <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
                   </div>
                 </div>
               </div>

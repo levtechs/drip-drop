@@ -7,7 +7,7 @@ import { useAuth } from "@/app/lib/auth-context";
 import { getListing, updateListing, deleteListing, getListings } from "@/app/views/listings";
 import { toggleSavedListing, getSavedListings } from "@/app/views/saved";
 import { createConversation } from "@/app/views/messaging";
-import { ListingData, ListingType, ClothingType, formatDate } from "@/app/lib/types";
+import { ListingData, ListingType, ClothingType, Condition, Size, formatDate } from "@/app/lib/types";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/app/lib/firebase";
 import ImageUpload from "@/app/components/image-upload";
@@ -31,6 +31,22 @@ const clothingTypeLabels: Record<ClothingType, string> = {
   accessories: "Accessories",
   dresses: "Dresses",
   other: "Other",
+};
+
+const conditionLabels: Record<Condition, string> = {
+  new: "New",
+  like_new: "Like New",
+  used_good: "Used - Good",
+  used_fair: "Used - Fair",
+};
+
+const sizeLabels: Record<Size, string> = {
+  xs: "XS",
+  s: "S",
+  m: "M",
+  l: "L",
+  xl: "XL",
+  xxl: "XXL",
 };
 
 const typeColors: Record<ListingType, string> = {
@@ -63,6 +79,22 @@ const clothingTypeOptions: { value: ClothingType; label: string }[] = [
   { value: "other", label: "Other" },
 ];
 
+const conditionOptions: { value: Condition; label: string }[] = [
+  { value: "new", label: "New" },
+  { value: "like_new", label: "Like New" },
+  { value: "used_good", label: "Used - Good" },
+  { value: "used_fair", label: "Used - Fair" },
+];
+
+const sizeOptions: { value: Size; label: string }[] = [
+  { value: "xs", label: "XS" },
+  { value: "s", label: "S" },
+  { value: "m", label: "M" },
+  { value: "l", label: "L" },
+  { value: "xl", label: "XL" },
+  { value: "xxl", label: "XXL" },
+];
+
 export default function ListingDetailPage() {
   const { user } = useAuth();
   const router = useRouter();
@@ -78,6 +110,8 @@ export default function ListingDetailPage() {
   const [editPrice, setEditPrice] = useState("");
   const [editType, setEditType] = useState<ListingType>("other");
   const [editClothingType, setEditClothingType] = useState<ClothingType | undefined>(undefined);
+  const [editCondition, setEditCondition] = useState<Condition | undefined>(undefined);
+  const [editSize, setEditSize] = useState<Size | undefined>(undefined);
   const [editImageUrls, setEditImageUrls] = useState<string[]>([]);
   const [editIsPrivate, setEditIsPrivate] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -104,6 +138,8 @@ export default function ListingDetailPage() {
         setEditPrice(data.price.toString());
         setEditType(data.type);
         setEditClothingType(data.clothingType);
+        setEditCondition(data.condition);
+        setEditSize(data.size);
         setEditImageUrls(data.imageUrls || []);
         setEditIsPrivate(data.isPrivate !== false);
 
@@ -194,6 +230,8 @@ export default function ListingDetailPage() {
         price: parseFloat(editPrice) || 0,
         type: editType,
         clothingType: editType === "clothes" ? editClothingType : undefined,
+        condition: editCondition,
+        size: editSize,
         imageUrls: editImageUrls.length > 0 ? editImageUrls : undefined,
         isPrivate: editIsPrivate,
       });
@@ -325,7 +363,7 @@ export default function ListingDetailPage() {
               />
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-3">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Category</label>
                 <select
@@ -357,23 +395,57 @@ export default function ListingDetailPage() {
                   className="w-full rounded-lg border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 />
               </div>
-            </div>
 
-            {editType === "clothes" && (
               <div className="space-y-2">
-                <label className="text-sm font-medium">Clothing Type</label>
+                <label className="text-sm font-medium">Condition</label>
                 <select
-                  value={editClothingType || ""}
-                  onChange={(e) => setEditClothingType(e.target.value as ClothingType)}
+                  value={editCondition || ""}
+                  onChange={(e) => setEditCondition(e.target.value as Condition || undefined)}
                   className="w-full rounded-lg border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 >
-                  <option value="">Select type</option>
-                  {clothingTypeOptions.map((option) => (
+                  <option value="">Select</option>
+                  {conditionOptions.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>
                   ))}
                 </select>
+              </div>
+            </div>
+
+            {editType === "clothes" && (
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Clothing Type</label>
+                  <select
+                    value={editClothingType || ""}
+                    onChange={(e) => setEditClothingType(e.target.value as ClothingType)}
+                    className="w-full rounded-lg border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  >
+                    <option value="">Select type</option>
+                    {clothingTypeOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Size</label>
+                  <select
+                    value={editSize || ""}
+                    onChange={(e) => setEditSize(e.target.value as Size || undefined)}
+                    className="w-full rounded-lg border border-input bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  >
+                    <option value="">Select size</option>
+                    {sizeOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             )}
 
@@ -442,6 +514,16 @@ export default function ListingDetailPage() {
                   {listing.clothingType && (
                     <span className="inline-block rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-800">
                       {clothingTypeLabels[listing.clothingType]}
+                    </span>
+                  )}
+                  {listing.condition && (
+                    <span className="inline-block rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800">
+                      {conditionLabels[listing.condition]}
+                    </span>
+                  )}
+                  {listing.size && (
+                    <span className="inline-block rounded-full bg-purple-100 px-3 py-1 text-xs font-medium text-purple-800">
+                      {sizeLabels[listing.size]}
                     </span>
                   )}
                 </div>
