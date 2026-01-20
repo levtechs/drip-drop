@@ -372,10 +372,14 @@ export default function SchoolPage() {
               <h1 className="text-2xl font-bold text-card-foreground">{school.name}</h1>
               <p className="text-muted-foreground">{school.state}</p>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="text-center sm:text-right">
+            <div className="flex items-center gap-6">
+              <div className="text-center">
                 <p className="text-3xl font-bold text-primary">{school.memberCount}</p>
                 <p className="text-sm text-muted-foreground">members</p>
+              </div>
+              <div className="text-center">
+                <p className="text-3xl font-bold text-primary">{listings.length}</p>
+                <p className="text-sm text-muted-foreground">listings</p>
               </div>
               {isAdmin && (
                 <button
