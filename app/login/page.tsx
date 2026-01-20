@@ -1,18 +1,21 @@
 "use client";
 
 import { useAuth } from "@/app/lib/auth-context";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, Suspense } from "react";
 
-export default function LoginPage() {
+function LoginContent() {
   const { user, signInWithGoogle, loading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectParam = searchParams.get("redirect");
+  const redirect = redirectParam?.startsWith("/") ? redirectParam : "/profile";
 
   useEffect(() => {
     if (!loading && user) {
-      router.push("/profile");
+      router.push(redirect);
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, redirect]);
 
   if (loading) {
     return (
@@ -52,5 +55,19 @@ export default function LoginPage() {
         </button>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   );
 }
