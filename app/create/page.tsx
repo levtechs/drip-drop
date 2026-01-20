@@ -42,28 +42,28 @@ export default function CreateListingPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center bg-background pb-20">
-        <p className="text-muted-foreground">Loading...</p>
+      <div className="flex items-center justify-center min-h-screen bg-background pb-20">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+        </div>
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background pb-20">
-        <main className="container mx-auto max-w-2xl px-4 py-8">
-          <h1 className="mb-8 text-3xl font-bold">Create a Listing</h1>
-          <div className="rounded-xl border border-border bg-card p-8 text-center">
-            <p className="mb-4 text-lg text-muted-foreground">
-              Sign in to create a listing
-            </p>
-            <Link
-              href="/login?redirect=/create"
-              className="inline-flex h-10 items-center justify-center rounded-full bg-primary px-6 text-sm font-medium text-white transition-colors hover:bg-primary-hover"
-            >
-              Sign In
-            </Link>
+      <div className="min-h-screen bg-background pb-20 flex items-center justify-center p-4">
+        <main className="w-full max-w-md text-center space-y-6">
+          <div className="space-y-2">
+             <h1 className="text-3xl font-bold tracking-tight">Join to Sell</h1>
+             <p className="text-muted-foreground">Sign in to start selling your items.</p>
           </div>
+          <Link
+            href="/login?redirect=/create"
+            className="inline-flex w-full h-12 items-center justify-center rounded-xl bg-primary px-6 text-base font-medium text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary-hover hover:-translate-y-0.5"
+          >
+            Sign In to Continue
+          </Link>
         </main>
       </div>
     );
@@ -99,129 +99,160 @@ export default function CreateListingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <main className="container mx-auto max-w-2xl px-4 py-8">
-        <h1 className="mb-8 text-3xl font-bold">Create a Listing</h1>
+    <div className="min-h-screen bg-background pb-24">
+      <main className="container mx-auto max-w-xl px-4 py-8 md:py-12">
+        <div className="mb-8 space-y-1">
+          <h1 className="text-2xl font-bold tracking-tight md:text-3xl">Create Listing</h1>
+          <p className="text-muted-foreground">Fill in the details to post your item.</p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-8">
           {error && (
-            <div className="rounded-lg bg-red-50 p-4 text-sm text-red-600">
+            <div className="rounded-xl bg-red-50 p-4 text-sm font-medium text-red-600 ring-1 ring-red-100 dark:bg-red-900/10 dark:text-red-400 dark:ring-red-900/20">
               {error}
             </div>
           )}
 
-          <div className="space-y-2">
-            <label htmlFor="title" className="text-sm font-medium">
-              Title
-            </label>
-            <input
-              id="title"
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="What are you selling?"
-              required
-              className="w-full rounded-lg border border-input bg-background px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-6">
             <div className="space-y-2">
-              <label htmlFor="type" className="text-sm font-medium">
-                Category
+              <label htmlFor="title" className="text-sm font-semibold leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                Title
               </label>
-              <select
-                id="type"
-                value={type}
-                onChange={(e) => {
-                  setType(e.target.value as ListingType);
-                  if (e.target.value !== "clothes") {
-                    setClothingType(undefined);
-                  }
-                }}
-                className="w-full rounded-lg border border-input bg-background px-4 py-3 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                {typeOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+              <input
+                id="title"
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="What are you selling?"
+                required
+                className="flex h-12 w-full rounded-xl border border-input bg-background px-4 py-3 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50 transition-all"
+              />
+            </div>
+
+            <div className="grid gap-6 sm:grid-cols-2">
+              <div className="space-y-2">
+                <label htmlFor="type" className="text-sm font-semibold leading-none">
+                  Category
+                </label>
+                <div className="relative">
+                  <select
+                    id="type"
+                    value={type}
+                    onChange={(e) => {
+                      setType(e.target.value as ListingType);
+                      if (e.target.value !== "clothes") {
+                        setClothingType(undefined);
+                      }
+                    }}
+                    className="flex h-12 w-full appearance-none rounded-xl border border-input bg-background px-4 py-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-all"
+                  >
+                    {typeOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="price" className="text-sm font-semibold leading-none">
+                  Price
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">$</span>
+                  <input
+                    id="price"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    placeholder="0.00"
+                    required
+                    className="flex h-12 w-full rounded-xl border border-input bg-background py-3 pl-8 pr-4 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-all"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {type === "clothes" && (
+              <div className="space-y-2 animate-in slide-in-from-top-2 duration-200">
+                <label htmlFor="clothingType" className="text-sm font-semibold leading-none">
+                  Clothing Type
+                </label>
+                <div className="relative">
+                  <select
+                    id="clothingType"
+                    value={clothingType || ""}
+                    onChange={(e) => setClothingType(e.target.value as ClothingType)}
+                    className="flex h-12 w-full appearance-none rounded-xl border border-input bg-background px-4 py-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-all"
+                  >
+                    <option value="">Select type</option>
+                    {clothingTypeOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                   <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <label htmlFor="description" className="text-sm font-semibold leading-none">
+                Description
+              </label>
+              <textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Describe condition, size, brand, etc..."
+                required
+                rows={5}
+                className="flex w-full rounded-xl border border-input bg-background px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none transition-all"
+              />
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="price" className="text-sm font-medium">
-                Price ($)
+              <label className="text-sm font-semibold leading-none">
+                Photos
               </label>
-              <input
-                id="price"
-                type="number"
-                step="0.01"
-                min="0"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                placeholder="0.00"
-                required
-                className="w-full rounded-lg border border-input bg-background px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              <ImageUpload
+                images={imageUrls}
+                onImagesChange={setImageUrls}
+                maxImages={10}
               />
             </div>
           </div>
 
-          {type === "clothes" && (
-            <div className="space-y-2">
-              <label htmlFor="clothingType" className="text-sm font-medium">
-                Clothing Type
-              </label>
-              <select
-                id="clothingType"
-                value={clothingType || ""}
-                onChange={(e) => setClothingType(e.target.value as ClothingType)}
-                className="w-full rounded-lg border border-input bg-background px-4 py-3 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                <option value="">Select type</option>
-                {clothingTypeOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          <div className="space-y-2">
-            <label htmlFor="description" className="text-sm font-medium">
-              Description
-            </label>
-            <textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe your item..."
-              required
-              rows={5}
-              className="w-full rounded-lg border border-input bg-background px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
-            />
-          </div>
-
-          <ImageUpload
-            images={imageUrls}
-            onImagesChange={setImageUrls}
-            maxImages={10}
-          />
-
-          <div className="flex gap-4">
+          <div className="flex gap-4 pt-4">
             <Link
               href="/listings"
-              className="flex h-11 items-center justify-center rounded-lg border border-input bg-background px-6 text-sm font-medium transition-colors hover:bg-muted"
+              className="flex h-12 items-center justify-center rounded-xl border border-input bg-background px-8 text-sm font-medium transition-all hover:bg-muted hover:text-foreground"
             >
               Cancel
             </Link>
             <button
               type="submit"
               disabled={submitting}
-              className="flex h-11 flex-1 items-center justify-center rounded-lg bg-primary px-6 text-sm font-medium text-white transition-colors hover:bg-primary-hover disabled:opacity-50"
+              className="flex h-12 flex-1 items-center justify-center rounded-xl bg-primary px-8 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary-hover hover:-translate-y-0.5 disabled:opacity-50 disabled:hover:translate-y-0"
             >
-              {submitting ? "Creating..." : "Create Listing"}
+              {submitting ? (
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+              ) : (
+                "Create Listing"
+              )}
             </button>
           </div>
         </form>
