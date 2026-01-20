@@ -79,6 +79,7 @@ export default function ListingDetailPage() {
   const [editType, setEditType] = useState<ListingType>("other");
   const [editClothingType, setEditClothingType] = useState<ClothingType | undefined>(undefined);
   const [editImageUrls, setEditImageUrls] = useState<string[]>([]);
+  const [editIsPrivate, setEditIsPrivate] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -104,6 +105,7 @@ export default function ListingDetailPage() {
         setEditType(data.type);
         setEditClothingType(data.clothingType);
         setEditImageUrls(data.imageUrls || []);
+        setEditIsPrivate(data.isPrivate !== false);
 
         if (db) {
           const userSnap = await getDoc(doc(db, "users", data.userId));
@@ -193,6 +195,7 @@ export default function ListingDetailPage() {
         type: editType,
         clothingType: editType === "clothes" ? editClothingType : undefined,
         imageUrls: editImageUrls.length > 0 ? editImageUrls : undefined,
+        isPrivate: editIsPrivate,
       });
       setListing(updated);
       setEditing(false);
@@ -390,6 +393,23 @@ export default function ListingDetailPage() {
               maxImages={10}
               listingId={id}
             />
+
+            <div className="rounded-lg border border-border bg-card p-4">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={editIsPrivate}
+                  onChange={(e) => setEditIsPrivate(e.target.checked)}
+                  className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+                <div>
+                  <p className="font-medium text-sm">Private to my school</p>
+                  <p className="text-xs text-muted-foreground">
+                    Only students from your school will see this listing
+                  </p>
+                </div>
+              </label>
+            </div>
 
             <div className="flex gap-4">
               <button
