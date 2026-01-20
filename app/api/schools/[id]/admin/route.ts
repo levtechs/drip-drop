@@ -30,65 +30,42 @@ export async function POST(
 
     const db = getDB();
     const schoolRef = db.collection("schools").doc(schoolId);
+    let resultAdminIds: string[] = [];
 
-    if (action === "add") {
-      let resultAdminIds: string[] = [];
+    await db.runTransaction(async (transaction) => {
+      const schoolSnap = await transaction.get(schoolRef);
 
-      await db.runTransaction(async (transaction) => {
-        const schoolSnap = await transaction.get(schoolRef);
+      if (!schoolSnap.exists) {
+        throw new Error("School not found");
+      }
 
-        if (!schoolSnap.exists) {
-          throw new Error("School not found");
-        }
+      const schoolData = schoolSnap.data();
+      const currentAdminIds = schoolData?.adminIds || [];
 
-        const schoolData = schoolSnap.data();
-        const currentAdminIds = schoolData?.adminIds || [];
+      if (!currentAdminIds.includes(userId)) {
+        throw new Error("Only admins can manage school admins");
+      }
 
-        if (!currentAdminIds.includes(userId)) {
-          throw new Error("Only admins can manage school admins");
-        }
-
+      if (action === "add") {
         if (currentAdminIds.includes(targetUserId)) {
           throw new Error("User is already an admin");
         }
-
         resultAdminIds = [...currentAdminIds, targetUserId];
-        transaction.update(schoolRef, { adminIds: resultAdminIds });
-      });
-
-      return NextResponse.json({ success: true, adminIds: resultAdminIds });
-    } else {
-      let resultAdminIds: string[] = [];
-
-      await db.runTransaction(async (transaction) => {
-        const schoolSnap = await transaction.get(schoolRef);
-
-        if (!schoolSnap.exists) {
-          throw new Error("School not found");
-        }
-
-        const schoolData = schoolSnap.data();
-        const currentAdminIds = schoolData?.adminIds || [];
-
-        if (!currentAdminIds.includes(userId)) {
-          throw new Error("Only admins can manage school admins");
-        }
-
+      } else {
         if (!currentAdminIds.includes(targetUserId)) {
           throw new Error("User is not an admin");
         }
-
         if (currentAdminIds.length <= 1) {
           throw new Error("Cannot remove the last admin");
         }
-
         resultAdminIds = currentAdminIds.filter((id: string) => id !== targetUserId);
-        transaction.update(schoolRef, { adminIds: resultAdminIds });
-      });
+      }
 
-      return NextResponse.json({ success: true, adminIds: resultAdminIds });
-    }
-    } catch (error) {
+      transaction.update(schoolRef, { adminIds: resultAdminIds });
+    });
+
+    return NextResponse.json({ success: true, adminIds: resultAdminIds });
+  } catch (error) {
     console.error("Error managing school admin:", error);
 
     if (error instanceof Error) {

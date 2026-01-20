@@ -220,10 +220,22 @@ export async function DELETE(
         const currentSchoolSnap = await transaction.get(schoolRef);
         const currentSchoolData = currentSchoolSnap.data();
         const currentMemberCount = currentSchoolData?.memberCount || 0;
+        const currentAdminIds = currentSchoolData?.adminIds || [];
+
+        const schoolUpdate: Record<string, unknown> = {};
 
         if (currentMemberCount > 0) {
-          transaction.update(schoolRef, { memberCount: currentMemberCount - 1 });
+          schoolUpdate.memberCount = currentMemberCount - 1;
         }
+
+        if (currentAdminIds.includes(targetId)) {
+          schoolUpdate.adminIds = currentAdminIds.filter((id: string) => id !== targetId);
+        }
+
+        if (Object.keys(schoolUpdate).length > 0) {
+          transaction.update(schoolRef, schoolUpdate);
+        }
+
         transaction.update(userRef, { schoolId: null });
       });
 
