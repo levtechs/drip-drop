@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getListings } from "@/app/views/listings";
-import { ListingData, ListingType, ClothingType, FilterOptions, formatDate } from "@/app/lib/types";
+import { ListingData, ListingType, ClothingType, FilterOptions, formatDate, Condition, Size } from "@/app/lib/types";
 import { useAuth } from "@/app/lib/auth-context";
 
 type ScopeType = "school" | "state" | "all";
@@ -29,6 +29,24 @@ const clothingTypes: { name: string; value: ClothingType | null }[] = [
   { name: "Dresses", value: "dresses" },
 ];
 
+const conditions: { name: string; value: Condition | null }[] = [
+  { name: "All", value: null },
+  { name: "New", value: "new" },
+  { name: "Like New", value: "like_new" },
+  { name: "Used - Good", value: "used_good" },
+  { name: "Used - Fair", value: "used_fair" },
+];
+
+const sizes: { name: string; value: Size | null }[] = [
+  { name: "All", value: null },
+  { name: "XS", value: "xs" },
+  { name: "S", value: "s" },
+  { name: "M", value: "m" },
+  { name: "L", value: "l" },
+  { name: "XL", value: "xl" },
+  { name: "XXL", value: "xxl" },
+];
+
 const scopeOptions: { name: string; value: ScopeType; icon: string }[] = [
   { name: "My School", value: "school", icon: "🎓" },
   { name: "My State", value: "state", icon: "🗺️" },
@@ -45,12 +63,30 @@ const typeLabels: Record<ListingType, string> = {
   other: "Other",
 };
 
+const conditionLabels: Record<Condition, string> = {
+  new: "New",
+  like_new: "Like New",
+  used_good: "Used - Good",
+  used_fair: "Used - Fair",
+};
+
+const sizeLabels: Record<Size, string> = {
+  xs: "XS",
+  s: "S",
+  m: "M",
+  l: "L",
+  xl: "XL",
+  xxl: "XXL",
+};
+
 export default function ListingsPage() {
   const { user, loading: authLoading } = useAuth();
   const [listings, setListings] = useState<ListingData[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<ListingType | null>(null);
   const [selectedClothingType, setSelectedClothingType] = useState<ClothingType | null>(null);
+  const [selectedCondition, setSelectedCondition] = useState<Condition | null>(null);
+  const [selectedSize, setSelectedSize] = useState<Size | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
@@ -66,6 +102,8 @@ export default function ListingsPage() {
 
         if (selectedCategory) filters.type = selectedCategory;
         if (selectedClothingType) filters.clothingType = selectedClothingType;
+        if (selectedCondition) filters.condition = selectedCondition;
+        if (selectedSize) filters.size = selectedSize;
         if (minPrice) filters.minPrice = parseFloat(minPrice);
         if (maxPrice) filters.maxPrice = parseFloat(maxPrice);
         if (searchQuery) filters.search = searchQuery;
@@ -87,12 +125,14 @@ export default function ListingsPage() {
   function clearFilters() {
     setSelectedCategory(null);
     setSelectedClothingType(null);
+    setSelectedCondition(null);
+    setSelectedSize(null);
     setMinPrice("");
     setMaxPrice("");
     setSearchQuery("");
   }
 
-  const hasActiveFilters = selectedCategory || selectedClothingType || minPrice || maxPrice || searchQuery;
+  const hasActiveFilters = selectedCategory || selectedClothingType || selectedCondition || selectedSize || minPrice || maxPrice || searchQuery;
 
   if (loading || authLoading) {
     return (
@@ -179,11 +219,11 @@ export default function ListingsPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
               </svg>
               {showFilters ? "Hide Filters" : "Filter Results"}
-              {hasActiveFilters && (
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
-                  {Number(Boolean(selectedCategory)) + Number(Boolean(selectedClothingType)) + Number(Boolean(minPrice)) + Number(Boolean(maxPrice)) + Number(Boolean(searchQuery))}
-                </span>
-              )}
+                {hasActiveFilters && (
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
+                    {Number(Boolean(selectedCategory)) + Number(Boolean(selectedClothingType)) + Number(Boolean(selectedCondition)) + Number(Boolean(selectedSize)) + Number(Boolean(minPrice)) + Number(Boolean(maxPrice)) + Number(Boolean(searchQuery))}
+                  </span>
+                )}
             </button>
 
             {showFilters && (
@@ -203,6 +243,46 @@ export default function ListingsPage() {
                           }`}
                         >
                           {type.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <label className="mb-3 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Condition</label>
+                  <div className="flex flex-wrap gap-2">
+                    {conditions.map((cond) => (
+                      <button
+                        key={cond.name}
+                        onClick={() => setSelectedCondition(cond.value)}
+                        className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                          selectedCondition === cond.value
+                            ? "bg-primary text-white"
+                            : "bg-background text-muted-foreground ring-1 ring-inset ring-border hover:bg-muted"
+                        }`}
+                      >
+                        {cond.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {selectedCategory === "clothes" && (
+                  <div>
+                    <label className="mb-3 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Size</label>
+                    <div className="flex flex-wrap gap-2">
+                      {sizes.map((size) => (
+                        <button
+                          key={size.name}
+                          onClick={() => setSelectedSize(size.value)}
+                          className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                            selectedSize === size.value
+                              ? "bg-primary text-white"
+                              : "bg-background text-muted-foreground ring-1 ring-inset ring-border hover:bg-muted"
+                          }`}
+                        >
+                          {size.name}
                         </button>
                       ))}
                     </div>
@@ -291,10 +371,20 @@ export default function ListingsPage() {
                       </svg>
                     </div>
                   )}
-                  <div className="absolute top-2 right-2 z-10">
-                     <span className="inline-block backdrop-blur-md bg-black/40 text-white text-xs font-semibold px-2 py-1 rounded-full">
-                       {typeLabels[listing.type]}
-                     </span>
+                  <div className="absolute top-2 right-2 z-10 flex gap-1">
+                    {listing.condition && (
+                      <span className="inline-block backdrop-blur-md bg-black/40 text-white text-[10px] font-semibold px-2 py-1 rounded-full">
+                        {conditionLabels[listing.condition]}
+                      </span>
+                    )}
+                    {listing.size && (
+                      <span className="inline-block backdrop-blur-md bg-black/40 text-white text-[10px] font-semibold px-2 py-1 rounded-full">
+                        {sizeLabels[listing.size]}
+                      </span>
+                    )}
+                    <span className="inline-block backdrop-blur-md bg-black/40 text-white text-xs font-semibold px-2 py-1 rounded-full">
+                      {typeLabels[listing.type]}
+                    </span>
                   </div>
                   {listing.imageUrls && listing.imageUrls.length > 1 && (
                     <div className="absolute bottom-2 right-2 rounded-full bg-black/60 backdrop-blur-sm px-2 py-0.5 text-[10px] font-medium text-white">

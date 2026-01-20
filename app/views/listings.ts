@@ -6,6 +6,8 @@ export async function getListings(filters?: FilterOptions): Promise<ListingData[
   
   if (filters?.type) params.set("type", filters.type);
   if (filters?.clothingType) params.set("clothingType", filters.clothingType);
+  if (filters?.condition) params.set("condition", filters.condition);
+  if (filters?.size) params.set("size", filters.size);
   if (filters?.minPrice !== undefined) params.set("minPrice", filters.minPrice.toString());
   if (filters?.maxPrice !== undefined) params.set("maxPrice", filters.maxPrice.toString());
   if (filters?.search) params.set("search", filters.search);

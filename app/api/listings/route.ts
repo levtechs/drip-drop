@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDB, verifyAuthToken, getAdminAuth } from "../helpers";
-import { ListingType, CreateListingInput, ListingData, ClothingType, TimestampData } from "@/app/lib/types";
+import { ListingType, CreateListingInput, ListingData, ClothingType, TimestampData, Condition, Size } from "@/app/lib/types";
 
 function extractTimestamp(createdAt: any): TimestampData {
   if (!createdAt) {
@@ -44,6 +44,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get("type") as ListingType | null;
     const clothingType = searchParams.get("clothingType") as ClothingType | null;
+    const condition = searchParams.get("condition") as Condition | null;
+    const size = searchParams.get("size") as Size | null;
     const minPrice = searchParams.get("minPrice");
     const maxPrice = searchParams.get("maxPrice");
     const search = searchParams.get("search");
@@ -115,6 +117,8 @@ export async function GET(request: NextRequest) {
         price: data.price || 0,
         type: data.type,
         clothingType: data.clothingType,
+        condition: data.condition,
+        size: data.size,
         userId: data.userId,
         schoolId: data.schoolId,
         isPrivate: data.isPrivate || false,
@@ -155,6 +159,14 @@ export async function GET(request: NextRequest) {
 
     if (clothingType) {
       listings = listings.filter((l) => l.clothingType === clothingType);
+    }
+
+    if (condition) {
+      listings = listings.filter((l) => l.condition === condition);
+    }
+
+    if (size) {
+      listings = listings.filter((l) => l.size === size);
     }
 
     if (minPrice) {
@@ -228,6 +240,14 @@ export async function POST(request: NextRequest) {
       listingData.clothingType = body.clothingType;
     }
     
+    if (body.condition !== undefined) {
+      listingData.condition = body.condition;
+    }
+    
+    if (body.size !== undefined) {
+      listingData.size = body.size;
+    }
+    
     const docRef = await listingsRef.add(listingData);
     
     const responseData: Record<string, unknown> = {
@@ -248,6 +268,14 @@ export async function POST(request: NextRequest) {
     
     if (body.clothingType !== undefined) {
       responseData.clothingType = body.clothingType;
+    }
+    
+    if (body.condition !== undefined) {
+      responseData.condition = body.condition;
+    }
+    
+    if (body.size !== undefined) {
+      responseData.size = body.size;
     }
     
     return NextResponse.json(responseData, { status: 201 });
