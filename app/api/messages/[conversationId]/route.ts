@@ -28,7 +28,7 @@ export async function GET(
     const q = messagesRef.where("conversationId", "==", conversationId);
     const querySnapshot = await q.get();
     
-    let messages: any[] = [];
+    const messages: any[] = [];
     for (const doc of querySnapshot.docs) {
       const data = doc.data();
       
@@ -43,6 +43,7 @@ export async function GET(
         conversationId: data.conversationId,
         senderId: data.senderId,
         content: data.content,
+        imageUrl: data.imageUrl,
         createdAt: {
           seconds: data.createdAt?.seconds || 0,
           nanoseconds: data.createdAt?.nanoseconds || 0,
@@ -82,45 +83,53 @@ export async function POST(
     const { conversationId } = await params;
     
     const body = await request.json();
-    const { content } = body;
-    
+    const { content, imageUrl } = body;
+
     if (!content || !content.trim()) {
       return NextResponse.json({ error: "Message content is required" }, { status: 400 });
     }
-    
+
     const db = getDB();
     const conversationRef = db.collection("conversations").doc(conversationId);
     const conversationSnap = await conversationRef.get();
-    
+
     if (!conversationSnap.exists) {
       return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
     }
-    
+
     const conversationData = conversationSnap.data()!;
-    
+
     if (!conversationData.participants.includes(senderId)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
-    
+
     const messagesRef = db.collection("messages");
-    const docRef = await messagesRef.add({
+    const docData: any = {
       conversationId,
       senderId,
       content: content.trim(),
       createdAt: new Date(),
       read: false,
-    });
-    
+    };
+
+    if (imageUrl) {
+      docData.imageUrl = imageUrl;
+    }
+
+    const docRef = await messagesRef.add(docData);
+
+    const lastMessagePreview = imageUrl ? "[Image]" : content.trim();
     await conversationRef.update({
-      lastMessage: content.trim(),
+      lastMessage: lastMessagePreview,
       lastMessageAt: new Date(),
     });
-    
+
     return NextResponse.json({
       id: docRef.id,
       conversationId,
       senderId,
       content: content.trim(),
+      imageUrl,
       createdAt: {
         seconds: Date.now() / 1000,
         nanoseconds: 0,

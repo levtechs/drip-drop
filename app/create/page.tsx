@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/app/lib/auth-context";
 import { createListing } from "@/app/views/listings";
 import { ListingType, ClothingType } from "@/app/lib/types";
+import ImageUpload from "@/app/components/image-upload";
 
 const typeOptions: { value: ListingType; label: string }[] = [
   { value: "clothes", label: "Clothes" },
@@ -35,6 +36,7 @@ export default function CreateListingPage() {
   const [price, setPrice] = useState("");
   const [type, setType] = useState<ListingType>("other");
   const [clothingType, setClothingType] = useState<ClothingType | undefined>(undefined);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -86,6 +88,7 @@ export default function CreateListingPage() {
         price: priceNum,
         type,
         clothingType: type === "clothes" ? clothingType : undefined,
+        imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
       });
       router.push(`/listings/${listing.id}`);
     } catch (err) {
@@ -199,6 +202,12 @@ export default function CreateListingPage() {
               className="w-full rounded-lg border border-input bg-background px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
             />
           </div>
+
+          <ImageUpload
+            images={imageUrls}
+            onImagesChange={setImageUrls}
+            maxImages={10}
+          />
 
           <div className="flex gap-4">
             <Link

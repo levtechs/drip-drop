@@ -6,6 +6,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "@/app/lib/auth-context";
 import { getConversation, getMessages, sendMessage } from "@/app/views/messaging";
 import { ConversationData, MessageData } from "@/app/lib/types";
+import { uploadImage } from "@/app/lib/image-upload";
 
 export default function ConversationPage() {
   const { user, loading } = useAuth();
@@ -19,6 +20,9 @@ export default function ConversationPage() {
   const [error, setError] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -70,17 +74,29 @@ export default function ConversationPage() {
 
   async function handleSendMessage(e: React.FormEvent) {
     e.preventDefault();
-    if (!newMessage.trim() || sending) return;
+    if (!newMessage.trim() && !selectedImage || sending) return;
 
     setSending(true);
     try {
-      const sentMessage = await sendMessage(conversationId, newMessage);
+      let imageUrl: string | undefined;
+
+      if (selectedImage) {
+        setUploadingImage(true);
+        const result = await uploadImage(selectedImage, "message", conversationId);
+        imageUrl = result.url;
+        setUploadingImage(false);
+      }
+
+      const sentMessage = await sendMessage(conversationId, newMessage, imageUrl);
       setMessages([...messages, sentMessage]);
       setNewMessage("");
+      setSelectedImage(null);
+      setImagePreview(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to send message");
     } finally {
       setSending(false);
+      setUploadingImage(false);
     }
   }
 
@@ -176,6 +192,13 @@ export default function ConversationPage() {
                   <p className="text-sm whitespace-pre-wrap break-words">
                     {message.content}
                   </p>
+                  {message.imageUrl && (
+                    <img
+                      src={message.imageUrl}
+                      alt="Attached image"
+                      className="mt-2 max-w-full rounded-lg border border-white/20"
+                    />
+                  )}
                   <p className={`mt-1 text-xs ${isOwnMessage ? "text-white/70" : "text-muted-foreground"}`}>
                     {new Date(message.createdAt.seconds * 1000).toLocaleTimeString([], {
                       hour: "numeric",
@@ -192,18 +215,67 @@ export default function ConversationPage() {
 
       <footer className="flex-none border-t border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 pb-24 lg:pb-4">
         <div className="container mx-auto max-w-2xl px-4 py-4">
+          {(imagePreview || selectedImage) && (
+            <div className="mb-3 flex items-center gap-2 rounded-lg bg-muted p-2">
+              <div className="relative h-16 w-16 overflow-hidden rounded-md">
+                <img
+                  src={imagePreview || ""}
+                  alt="Selected"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm truncate">{selectedImage?.name}</p>
+                {uploadingImage && (
+                  <p className="text-xs text-primary">Uploading...</p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedImage(null);
+                  setImagePreview(null);
+                }}
+                className="p-1 text-muted-foreground hover:text-red-500"
+                disabled={uploadingImage}
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          )}
+
           <form onSubmit={handleSendMessage} className="flex gap-3">
+            <label className="cursor-pointer inline-flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-muted/80 hover:text-primary">
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setSelectedImage(file);
+                    setImagePreview(URL.createObjectURL(file));
+                  }
+                }}
+                className="hidden"
+                disabled={uploadingImage}
+              />
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </label>
             <input
               type="text"
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder="Type a message..."
-              disabled={sending}
+              disabled={sending || uploadingImage}
               className="flex-1 rounded-full border border-input bg-background px-4 py-2.5 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
             <button
               type="submit"
-              disabled={!newMessage.trim() || sending}
+              disabled={(!newMessage.trim() && !selectedImage) || sending || uploadingImage}
               className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white transition-colors hover:bg-primary-hover disabled:opacity-50"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

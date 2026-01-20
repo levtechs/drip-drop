@@ -10,6 +10,8 @@ import { createConversation } from "@/app/views/messaging";
 import { ListingData, ListingType, ClothingType } from "@/app/lib/types";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/app/lib/firebase";
+import ImageUpload from "@/app/components/image-upload";
+import ListingGallery from "@/app/components/listing-gallery";
 
 const typeLabels: Record<ListingType, string> = {
   clothes: "Clothes",
@@ -76,6 +78,7 @@ export default function ListingDetailPage() {
   const [editPrice, setEditPrice] = useState("");
   const [editType, setEditType] = useState<ListingType>("other");
   const [editClothingType, setEditClothingType] = useState<ClothingType | undefined>(undefined);
+  const [editImageUrls, setEditImageUrls] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -99,6 +102,7 @@ export default function ListingDetailPage() {
         setEditPrice(data.price.toString());
         setEditType(data.type);
         setEditClothingType(data.clothingType);
+        setEditImageUrls(data.imageUrls || []);
 
         if (db) {
           const userSnap = await getDoc(doc(db, "users", data.userId));
@@ -175,6 +179,7 @@ export default function ListingDetailPage() {
         price: parseFloat(editPrice) || 0,
         type: editType,
         clothingType: editType === "clothes" ? editClothingType : undefined,
+        imageUrls: editImageUrls.length > 0 ? editImageUrls : undefined,
       });
       setListing(updated);
       setEditing(false);
@@ -368,6 +373,13 @@ export default function ListingDetailPage() {
               />
             </div>
 
+            <ImageUpload
+              images={editImageUrls}
+              onImagesChange={setEditImageUrls}
+              maxImages={10}
+              listingId={id}
+            />
+
             <div className="flex gap-4">
               <button
                 onClick={() => setEditing(false)}
@@ -414,6 +426,7 @@ export default function ListingDetailPage() {
                   )}
                 </div>
               </div>
+
               {isOwner && (
                 <div className="flex gap-2">
                   <button
@@ -432,6 +445,10 @@ export default function ListingDetailPage() {
                 </div>
               )}
             </div>
+
+            {listing.imageUrls && listing.imageUrls.length > 0 && (
+              <ListingGallery images={listing.imageUrls} title={listing.title} />
+            )}
 
             <div className="rounded-xl border border-border bg-card p-6">
               <h2 className="mb-4 text-lg font-semibold">Description</h2>

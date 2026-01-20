@@ -1,6 +1,7 @@
 import { initializeApp, getApp, getApps, FirebaseApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, Auth } from "firebase/auth";
 import { getFirestore, Firestore } from "firebase/firestore";
+import { getStorage, FirebaseStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "",
@@ -23,6 +24,7 @@ function hasValidConfig(): boolean {
 let app: FirebaseApp | null = null;
 let authInstance: Auth | null = null;
 let dbInstance: Firestore | null = null;
+let storageInstance: FirebaseStorage | null = null;
 let googleProviderInstance: GoogleAuthProvider | null = null;
 
 export function getFirebaseApp(): FirebaseApp {
@@ -61,7 +63,15 @@ export function getGoogleProvider(): GoogleAuthProvider {
   return googleProviderInstance;
 }
 
+export function getFirebaseStorage(): FirebaseStorage {
+  if (!storageInstance) {
+    storageInstance = getStorage(getFirebaseApp());
+  }
+  return storageInstance;
+}
+
 // Export initialized instances
 export const auth = hasValidConfig() ? getFirebaseAuth() : null;
 export const db = hasValidConfig() ? getFirebaseDb() : null;
+export const storage = hasValidConfig() ? getFirebaseStorage() : null;
 export const googleProvider = hasValidConfig() ? getGoogleProvider() : new GoogleAuthProvider();

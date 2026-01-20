@@ -68,6 +68,7 @@ export interface Message {
   conversationId: string;
   senderId: string;
   content: string;
+  imageUrl?: string;
   createdAt: Timestamp;
   read: boolean;
 }
@@ -95,6 +96,7 @@ export interface MessageData {
   conversationId: string;
   senderId: string;
   content: string;
+  imageUrl?: string;
   createdAt: {
     seconds: number;
     nanoseconds: number;

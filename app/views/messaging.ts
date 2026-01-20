@@ -60,11 +60,12 @@ export async function getMessages(conversationId: string): Promise<MessageData[]
 
 export async function sendMessage(
   conversationId: string,
-  content: string
+  content: string,
+  imageUrl?: string
 ): Promise<MessageData> {
   const response = await authenticatedFetch(`/api/messages/${conversationId}`, {
     method: "POST",
-    body: JSON.stringify({ content }),
+    body: JSON.stringify({ content, imageUrl }),
   });
 
   if (!response.ok) {

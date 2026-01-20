@@ -93,7 +93,11 @@ export async function PUT(
     if (body.clothingType !== undefined) {
       updateData.clothingType = body.clothingType;
     }
-    
+
+    if (body.imageUrls !== undefined) {
+      updateData.imageUrls = body.imageUrls;
+    }
+
     await listingRef.update(updateData);
     
     return NextResponse.json({

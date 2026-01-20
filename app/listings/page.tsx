@@ -235,32 +235,54 @@ export default function ListingsPage() {
               <Link
                 key={listing.id}
                 href={`/listings/${listing.id}`}
-                className="group block rounded-xl border border-border bg-card p-4 transition-all hover:border-primary/50 hover:shadow-md"
+                className="group block rounded-xl border border-border bg-card transition-all hover:border-primary/50 hover:shadow-md"
               >
-                <div className="mb-3 flex items-start justify-between">
-                  <span
-                    className={`inline-block rounded-full px-2.5 py-1 text-xs font-medium ${
-                      typeColors[listing.type]
-                    }`}
-                  >
-                    {typeLabels[listing.type]}
-                  </span>
-                  {listing.price > 0 && (
-                    <span className="font-semibold text-green-600">
-                      ${listing.price.toFixed(2)}
-                    </span>
+                <div className="aspect-[4/3] w-full overflow-hidden rounded-t-xl bg-muted">
+                  {listing.imageUrls && listing.imageUrls.length > 0 ? (
+                    <img
+                      src={listing.imageUrls[0]}
+                      alt={listing.title}
+                      className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-muted-foreground">
+                      <svg className="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                  )}
+                  {listing.imageUrls && listing.imageUrls.length > 1 && (
+                    <div className="absolute bottom-2 right-2 rounded-full bg-black/60 px-2 py-0.5 text-xs text-white">
+                      +{listing.imageUrls.length - 1}
+                    </div>
                   )}
                 </div>
-                <h3 className="mb-2 font-semibold group-hover:text-primary line-clamp-1">
-                  {listing.title}
-                </h3>
-                <p className="mb-3 text-sm text-muted-foreground line-clamp-2">
-                  {listing.description}
-                </p>
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>
-                    {new Date(listing.createdAt.seconds * 1000).toLocaleDateString()}
-                  </span>
+                <div className="p-4">
+                  <div className="mb-2 flex items-start justify-between">
+                    <span
+                      className={`inline-block rounded-full px-2.5 py-1 text-xs font-medium ${
+                        typeColors[listing.type]
+                      }`}
+                    >
+                      {typeLabels[listing.type]}
+                    </span>
+                    {listing.price > 0 && (
+                      <span className="font-semibold text-green-600">
+                        ${listing.price.toFixed(2)}
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="mb-1 font-semibold group-hover:text-primary line-clamp-1">
+                    {listing.title}
+                  </h3>
+                  <p className="mb-3 text-sm text-muted-foreground line-clamp-2">
+                    {listing.description}
+                  </p>
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>
+                      {new Date(listing.createdAt.seconds * 1000).toLocaleDateString()}
+                    </span>
+                  </div>
                 </div>
               </Link>
             ))}
