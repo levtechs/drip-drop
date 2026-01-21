@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/app/lib/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -52,7 +53,9 @@ export default function Home() {
       <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <Link href="/" className="flex items-center space-x-2">
-            <span className="text-2xl">🏷️</span>
+            <div className="relative w-8 h-8">
+              <Image src="/logo.png" alt="Thryft" fill className="object-contain" />
+            </div>
             <span className="text-xl font-bold">Thryft</span>
           </Link>
           <Link

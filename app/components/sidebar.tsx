@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/app/lib/auth-context";
 import { useMessaging } from "@/app/lib/messaging-context";
@@ -24,7 +25,9 @@ export default function Sidebar() {
   return (
     <aside className="hidden lg:flex fixed left-0 top-0 h-screen w-64 border-r border-border/60 bg-background/95 backdrop-blur-xl flex-col p-6 z-40">
       <div className="mb-10 px-2 flex items-center gap-2">
-        <span className="text-3xl">🏷️</span>
+        <div className="relative w-10 h-10">
+          <Image src="/logo.png" alt="Thryft" fill className="object-contain" />
+        </div>
         <span className="text-xl font-bold tracking-tight">Thryft</span>
       </div>
 
