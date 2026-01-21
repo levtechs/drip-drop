@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { AffiliateInfo } from "@/app/lib/types";
 
 interface ShareLinkPopupProps {
@@ -14,33 +14,26 @@ export default function ShareLinkPopup({ userId, userName, onClose }: ShareLinkP
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const creatingRef = useRef(false);
 
   useEffect(() => {
     let mounted = true;
 
-    async function fetchOrCreateAffiliate() {
-      if (creatingRef.current) return;
-      creatingRef.current = true;
-
-      setLoading(true);
-      setError(null);
-
+    async function fetchAffiliate() {
       try {
         const response = await fetch(`/api/affiliates?userId=${userId}`);
-        if (response.ok && mounted) {
+        
+        if (response.ok) {
           const data = await response.json();
-          if (data.affiliates && data.affiliates.length > 0) {
+          if (data.affiliates && data.affiliates.length > 0 && mounted) {
             const aff = data.affiliates[0];
             setAffiliate({
               id: aff.id,
               code: aff.code,
-              linkUrl: aff.linkUrl,
+              linkUrl: aff.linkUrl || `${window.location.origin}/?utm_source=affiliate&utm_campaign=${aff.code}&utm_affiliate=${aff.id}`,
               clickCount: aff.clickCount || 0,
               signUpCount: aff.signUpCount || 0,
             });
             setLoading(false);
-            creatingRef.current = false;
             return;
           }
         }
@@ -58,8 +51,7 @@ export default function ShareLinkPopup({ userId, userName, onClose }: ShareLinkP
         });
 
         if (!createResponse.ok) {
-          const error = await createResponse.json();
-          throw new Error(error.error || "Failed to create affiliate link");
+          throw new Error("Failed to create affiliate link");
         }
 
         const data = await createResponse.json();
@@ -79,12 +71,11 @@ export default function ShareLinkPopup({ userId, userName, onClose }: ShareLinkP
       } finally {
         if (mounted) {
           setLoading(false);
-          creatingRef.current = false;
         }
       }
     }
 
-    fetchOrCreateAffiliate();
+    fetchAffiliate();
 
     return () => {
       mounted = false;

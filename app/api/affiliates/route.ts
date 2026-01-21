@@ -18,6 +18,25 @@ export async function POST(request: NextRequest) {
     const userDoc = await db.collection("users").doc(userId).get();
     const userData = userDoc.data();
     
+    const existingSnapshot = await db.collection("affiliates")
+      .where("userId", "==", userId)
+      .where("isActive", "==", true)
+      .get();
+
+    if (!existingSnapshot.empty) {
+      const existing = existingSnapshot.docs[0];
+      const existingData = existing.data();
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+      const linkUrl = existingData.linkUrl || `${baseUrl}/?utm_source=affiliate&utm_campaign=${existingData.code}&utm_affiliate=${existing.id}`;
+      
+      return NextResponse.json({
+        id: existing.id,
+        code: existingData.code,
+        linkUrl,
+        existing: true,
+      });
+    }
+    
     const affiliateRef = db.collection("affiliates").doc();
     const code = affiliateRef.id.substring(0, 8);
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
@@ -41,6 +60,7 @@ export async function POST(request: NextRequest) {
       id: affiliateRef.id,
       code,
       linkUrl,
+      existing: false,
     });
   } catch (error: any) {
     console.error("Error creating affiliate:", error);
