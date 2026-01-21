@@ -12,6 +12,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || "localhost:3000";
+    const protocol = request.headers.get("x-forwarded-proto") || "http";
+    const baseUrl = `${protocol}://${host}`;
+
     const { firestore } = await initFirebaseAdmin();
     const db = firestore();
 
@@ -26,7 +30,6 @@ export async function POST(request: NextRequest) {
     if (!existingSnapshot.empty) {
       const existing = existingSnapshot.docs[0];
       const existingData = existing.data();
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
       const linkUrl = existingData.linkUrl || `${baseUrl}/?utm_source=affiliate&utm_campaign=${existingData.code}&utm_affiliate=${existing.id}`;
       
       return NextResponse.json({
@@ -39,7 +42,6 @@ export async function POST(request: NextRequest) {
     
     const affiliateRef = db.collection("affiliates").doc();
     const code = affiliateRef.id.substring(0, 8);
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
     const linkUrl = `${baseUrl}/?utm_source=affiliate&utm_campaign=${code}&utm_affiliate=${affiliateRef.id}`;
 
     await affiliateRef.set({
