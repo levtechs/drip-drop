@@ -7,11 +7,42 @@ interface AffiliateCaptureProps {
   children: React.ReactNode;
 }
 
+async function trackAffiliateClick(affiliateId: string): Promise<void> {
+  try {
+    await fetch("/api/affiliates/click", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        affiliateId,
+        landingPage: window.location.pathname,
+        userAgent: navigator.userAgent,
+        referrer: document.referrer,
+      }),
+    });
+  } catch (e) {
+    console.error("Error tracking affiliate click:", e);
+  }
+}
+
 export function AffiliateCapture({ children }: AffiliateCaptureProps) {
   useEffect(() => {
     if (typeof window !== "undefined") {
+      captureAffiliateFromUrl(window.location.href);
+      
       const url = window.location.href;
-      captureAffiliateFromUrl(url);
+      try {
+        const urlObj = new URL(url);
+        const affiliateId = urlObj.searchParams.get("utm_affiliate");
+        const source = urlObj.searchParams.get("utm_source");
+        
+        if (affiliateId && source === "affiliate") {
+          trackAffiliateClick(affiliateId);
+        }
+      } catch (e) {
+        console.error("Error parsing affiliate URL:", e);
+      }
     }
   }, []);
 
