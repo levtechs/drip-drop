@@ -12,9 +12,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || "localhost:3000";
-    const protocol = request.headers.get("x-forwarded-proto") || "http";
-    const baseUrl = `${protocol}://${host}`;
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
+      `${request.headers.get("x-forwarded-proto") || "http"}://${request.headers.get("host") || "localhost:3000"}`;
 
     const { firestore } = await initFirebaseAdmin();
     const db = firestore();
