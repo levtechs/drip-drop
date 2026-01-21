@@ -173,6 +173,7 @@ export interface UserData {
     nanoseconds: number;
   };
   schoolId?: string;
+  referredBy?: string;
 }
 
 export interface FilterOptions {
@@ -324,4 +325,45 @@ export interface User {
   profilePicture: string;
   createdAt: Timestamp;
   schoolId?: string;
+  referredBy?: string;
+  affiliateId?: string;
+}
+
+export interface Affiliate {
+  id: string;
+  userId: string;
+  name: string;
+  code: string;
+  clickCount: number;
+  signUpCount: number;
+  commissionRate: number;
+  isActive: boolean;
+  createdAt: Timestamp;
+}
+
+export interface AffiliateClick {
+  id: string;
+  affiliateId: string;
+  referredEmail?: string;
+  userAgent?: string;
+  referrer?: string;
+  landingPage?: string;
+  timestamp: Timestamp;
+}
+
+export interface AffiliateConversion {
+  id: string;
+  affiliateId: string;
+  referredUserId: string;
+  commission: number;
+  status: "pending" | "approved" | "paid";
+  createdAt: Timestamp;
+  convertedAt?: Timestamp;
+}
+
+export interface AffiliateStats {
+  affiliateId: string;
+  clickCount: number;
+  signUpCount: number;
+  conversionRate: number;
 }
