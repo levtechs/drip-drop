@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { AuthContextType } from "./types";
 import { initFirebase, getFirebaseAuth, getFirebaseDb } from "@/app/lib/firebase-runtime";
+import { getAffiliateData } from "@/app/lib/affiliate-tracker";
 
 interface AuthContextValue extends AuthContextType {
   needsSchoolSelection: boolean;
@@ -10,6 +11,37 @@ interface AuthContextValue extends AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+async function creditAffiliate(referredUserId: string, referredEmail?: string): Promise<void> {
+  const affiliateData = getAffiliateData();
+  
+  if (!affiliateData) {
+    return;
+  }
+
+  try {
+    const response = await fetch("/api/affiliates/credit", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        affiliateId: affiliateData.affiliateId,
+        referredUserId,
+        referredEmail,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      if (error.error !== "User already referred") {
+        console.error("Failed to credit affiliate:", error);
+      }
+    }
+  } catch (e) {
+    console.error("Error crediting affiliate:", e);
+  }
+}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<any>(null);
@@ -60,6 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 createdAt: Timestamp.now(),
               });
               setNeedsSchoolSelection(true);
+              creditAffiliate(user.uid, user.email);
             } else {
               const userData = userSnap.data();
               setNeedsSchoolSelection(!userData?.schoolId);
