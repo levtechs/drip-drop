@@ -179,9 +179,9 @@ export interface UserData {
 export interface FilterOptions {
   type?: ListingType;
   clothingType?: ClothingType;
-  condition?: Condition;
-  size?: Size;
-  gender?: Gender;
+  condition?: Condition[];
+  size?: Size[];
+  gender?: Gender[];
   minPrice?: number;
   maxPrice?: number;
   search?: string;

@@ -67,9 +67,9 @@ export default function ListingsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<ListingType | null>(null);
   const [selectedClothingType, setSelectedClothingType] = useState<ClothingType | null>(null);
-  const [selectedCondition, setSelectedCondition] = useState<Condition | null>(null);
-  const [selectedSize, setSelectedSize] = useState<Size | null>(null);
-  const [selectedGender, setSelectedGender] = useState<Gender | null>(null);
+  const [selectedCondition, setSelectedCondition] = useState<Condition[]>([]);
+  const [selectedSize, setSelectedSize] = useState<Size[]>([]);
+  const [selectedGender, setSelectedGender] = useState<Gender[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
@@ -85,9 +85,9 @@ export default function ListingsPage() {
 
         if (selectedCategory) filters.type = selectedCategory;
         if (selectedClothingType) filters.clothingType = selectedClothingType;
-        if (selectedCondition) filters.condition = selectedCondition;
-        if (selectedSize) filters.size = selectedSize;
-        if (selectedGender) filters.gender = selectedGender;
+        if (selectedCondition.length > 0) filters.condition = selectedCondition;
+        if (selectedSize.length > 0) filters.size = selectedSize;
+        if (selectedGender.length > 0) filters.gender = selectedGender;
         if (minPrice) filters.minPrice = parseFloat(minPrice);
         if (maxPrice) filters.maxPrice = parseFloat(maxPrice);
         if (searchQuery) filters.search = searchQuery;
@@ -104,20 +104,20 @@ export default function ListingsPage() {
     if (!authLoading) {
       fetchListings();
     }
-  }, [selectedCategory, selectedClothingType, minPrice, maxPrice, searchQuery, scope, authLoading]);
+  }, [selectedCategory, selectedClothingType, selectedCondition, selectedSize, selectedGender, minPrice, maxPrice, searchQuery, scope, authLoading]);
 
   function clearFilters() {
     setSelectedCategory(null);
     setSelectedClothingType(null);
-    setSelectedCondition(null);
-    setSelectedSize(null);
-    setSelectedGender(null);
+    setSelectedCondition([]);
+    setSelectedSize([]);
+    setSelectedGender([]);
     setMinPrice("");
     setMaxPrice("");
     setSearchQuery("");
   }
 
-  const hasActiveFilters = selectedCategory || selectedClothingType || selectedCondition || selectedSize || selectedGender || minPrice || maxPrice || searchQuery;
+  const hasActiveFilters = selectedCategory || selectedClothingType || selectedCondition.length > 0 || selectedSize.length > 0 || selectedGender.length > 0 || minPrice || maxPrice || searchQuery;
 
   if (loading || authLoading) {
     return (
@@ -201,12 +201,12 @@ export default function ListingsPage() {
               className="flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-primary lg:mb-4"
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
               </svg>
-              {showFilters ? "Hide Filters" : "Filter Results"}
+                {showFilters ? "Hide Filters" : "Filter Results"}
                 {hasActiveFilters && (
                   <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
-                    {Number(Boolean(selectedCategory)) + Number(Boolean(selectedClothingType)) + Number(Boolean(selectedCondition)) + Number(Boolean(selectedSize)) + Number(Boolean(selectedGender)) + Number(Boolean(minPrice)) + Number(Boolean(maxPrice)) + Number(Boolean(searchQuery))}
+                    {Number(Boolean(selectedCategory)) + Number(Boolean(selectedClothingType)) + Number(Boolean(selectedCondition.length > 0)) + Number(Boolean(selectedSize.length > 0)) + Number(Boolean(selectedGender.length > 0)) + Number(Boolean(minPrice)) + Number(Boolean(maxPrice)) + Number(Boolean(searchQuery))}
                   </span>
                 )}
             </button>
@@ -246,11 +246,25 @@ export default function ListingsPage() {
                     {conditions.map((cond) => (
                       <button
                         key={cond.name}
-                        onClick={() => setSelectedCondition(cond.value)}
+                        onClick={() => {
+                          if (cond.value === null) {
+                            setSelectedCondition([]);
+                          } else {
+                            setSelectedCondition((prev) =>
+                              prev.includes(cond.value!)
+                                ? prev.filter((v) => v !== cond.value)
+                                : [...prev, cond.value!]
+                            );
+                          }
+                        }}
                         className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                          selectedCondition === cond.value
-                            ? "bg-primary text-white"
-                            : "bg-background text-muted-foreground ring-1 ring-inset ring-border hover:bg-muted"
+                          cond.value === null
+                            ? selectedCondition.length === 0
+                              ? "bg-primary text-white"
+                              : "bg-background text-muted-foreground ring-1 ring-inset ring-border hover:bg-muted"
+                            : selectedCondition.includes(cond.value!)
+                              ? "bg-primary text-white"
+                              : "bg-background text-muted-foreground ring-1 ring-inset ring-border hover:bg-muted"
                         }`}
                       >
                         {cond.name}
@@ -266,11 +280,25 @@ export default function ListingsPage() {
                       {sizes.map((size) => (
                         <button
                           key={size.name}
-                          onClick={() => setSelectedSize(size.value)}
+                          onClick={() => {
+                            if (size.value === null) {
+                              setSelectedSize([]);
+                            } else {
+                              setSelectedSize((prev) =>
+                                prev.includes(size.value!)
+                                  ? prev.filter((v) => v !== size.value)
+                                  : [...prev, size.value!]
+                              );
+                            }
+                          }}
                           className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                            selectedSize === size.value
-                              ? "bg-primary text-white"
-                              : "bg-background text-muted-foreground ring-1 ring-inset ring-border hover:bg-muted"
+                            size.value === null
+                              ? selectedSize.length === 0
+                                ? "bg-primary text-white"
+                                : "bg-background text-muted-foreground ring-1 ring-inset ring-border hover:bg-muted"
+                              : selectedSize.includes(size.value!)
+                                ? "bg-primary text-white"
+                                : "bg-background text-muted-foreground ring-1 ring-inset ring-border hover:bg-muted"
                           }`}
                         >
                           {size.name}
@@ -287,11 +315,25 @@ export default function ListingsPage() {
                       {genders.map((gender) => (
                         <button
                           key={gender.name}
-                          onClick={() => setSelectedGender(gender.value)}
+                          onClick={() => {
+                            if (gender.value === null) {
+                              setSelectedGender([]);
+                            } else {
+                              setSelectedGender((prev) =>
+                                prev.includes(gender.value!)
+                                  ? prev.filter((v) => v !== gender.value)
+                                  : [...prev, gender.value!]
+                              );
+                            }
+                          }}
                           className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                            selectedGender === gender.value
-                              ? "bg-primary text-white"
-                              : "bg-background text-muted-foreground ring-1 ring-inset ring-border hover:bg-muted"
+                            gender.value === null
+                              ? selectedGender.length === 0
+                                ? "bg-primary text-white"
+                                : "bg-background text-muted-foreground ring-1 ring-inset ring-border hover:bg-muted"
+                              : selectedGender.includes(gender.value!)
+                                ? "bg-primary text-white"
+                                : "bg-background text-muted-foreground ring-1 ring-inset ring-border hover:bg-muted"
                           }`}
                         >
                           {gender.name}

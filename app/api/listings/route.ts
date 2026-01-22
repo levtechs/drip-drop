@@ -44,9 +44,13 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get("type") as ListingType | null;
     const clothingType = searchParams.get("clothingType") as ClothingType | null;
-    const condition = searchParams.get("condition") as Condition | null;
-    const size = searchParams.get("size") as Size | null;
-    const gender = searchParams.get("gender") as Gender | null;
+    const condition = searchParams.get("condition");
+    const size = searchParams.get("size");
+    const gender = searchParams.get("gender");
+
+    const conditionArray = condition ? condition.split(",") : [];
+    const sizeArray = size ? size.split(",") : [];
+    const genderArray = gender ? gender.split(",") : [];
     const minPrice = searchParams.get("minPrice");
     const maxPrice = searchParams.get("maxPrice");
     const search = searchParams.get("search");
@@ -164,16 +168,16 @@ export async function GET(request: NextRequest) {
       listings = listings.filter((l) => l.clothingType === clothingType);
     }
 
-    if (condition) {
-      listings = listings.filter((l) => l.condition === condition);
+    if (conditionArray.length > 0) {
+      listings = listings.filter((l) => l.condition && conditionArray.includes(l.condition));
     }
 
-    if (size) {
-      listings = listings.filter((l) => l.size === size);
+    if (sizeArray.length > 0) {
+      listings = listings.filter((l) => l.size && sizeArray.includes(l.size));
     }
 
-    if (gender) {
-      listings = listings.filter((l) => l.gender === gender);
+    if (genderArray.length > 0) {
+      listings = listings.filter((l) => l.gender && genderArray.includes(l.gender));
     }
 
     if (minPrice) {
