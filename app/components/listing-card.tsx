@@ -3,7 +3,6 @@
 import Link from "next/link";
 import ProgressiveImage from "@/app/components/progressive-image";
 import { ListingData } from "@/app/lib/types";
-import { formatDate } from "@/app/lib/types";
 
 const conditionLabels: Record<string, string> = {
   new: "New",
@@ -121,9 +120,6 @@ export default function ListingCard({ listing, index = 0, isSold = false, action
               Free
             </span>
           )}
-          <span className="text-[10px] sm:text-xs text-muted-foreground">
-            {formatDate(listing.createdAt)}
-          </span>
         </div>
       </div>
     </Link>

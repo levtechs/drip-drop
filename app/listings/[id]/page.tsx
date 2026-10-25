@@ -7,7 +7,7 @@ import { useAuth } from "@/app/lib/auth-context";
 import { getListing, updateListing, deleteListing, getListings, markListingAsSold, markListingAsAvailable } from "@/app/views/listings";
 import { toggleSavedListing, getSavedListings } from "@/app/views/saved";
 import { createConversation } from "@/app/views/messaging";
-import { ListingData, ListingType, ClothingType, Condition, Size, Gender, formatDate } from "@/app/lib/types";
+import { ListingData, ListingType, ClothingType, Condition, Size, Gender } from "@/app/lib/types";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/app/lib/firebase";
 import ImageUpload from "@/app/components/image-upload";
@@ -560,9 +560,6 @@ export default function ListingDetailPage() {
                 </div>
                 <h1 className="mt-3 text-2xl font-bold">{listing.title}</h1>
                 <div className="mt-2 flex items-center gap-4 text-sm text-muted-foreground">
-                  <span>
-                    {formatDate(listing.createdAt)}
-                  </span>
                   {listing.price > 0 && (
                     <span className="text-lg font-semibold text-green-600">
                       ${listing.price.toFixed(2)}
@@ -801,9 +798,6 @@ export default function ListingDetailPage() {
                               Free
                             </span>
                           )}
-                          <span className="text-[10px] sm:text-xs text-muted-foreground">
-                            {formatDate(related.createdAt)}
-                          </span>
                         </div>
                       </div>
                     </Link>
